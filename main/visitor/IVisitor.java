@@ -59,4 +59,6 @@ public interface IVisitor<T> {
     T visit(ThrowStmt throwStmt);
 
     T visit(TryCatchStmt tryCatchStmt);
+
+    T visit(NullValue nullValue);
 }

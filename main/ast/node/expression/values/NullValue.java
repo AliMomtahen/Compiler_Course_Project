@@ -10,7 +10,8 @@ public class NullValue extends Value {
     }
 
     public void getConstant() {
-        // return null;
+
+//        return null;
     }
 
 //    public void setConstant(boolean constant) {
@@ -24,6 +25,7 @@ public class NullValue extends Value {
     }
     @Override
     public <T> T accept(IVisitor<T> visitor) {
+
         return visitor.visit(this);
     }
 }
