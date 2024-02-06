@@ -142,4 +142,9 @@ public class Visitor<T> implements IVisitor<T> {
     public T visit(TryCatchStmt tryCatchStmt) {
         return null;
     }
+
+    @Override
+    public T visit(NullValue nullValue) {
+        return null;
+    }
 }
