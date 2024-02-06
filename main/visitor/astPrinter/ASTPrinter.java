@@ -8,6 +8,7 @@ import main.ast.node.expression.values.FloatValue;
 import main.ast.node.expression.values.IntValue;
 import main.ast.node.expression.values.StringValue;
 import main.ast.node.expression.values.TradeValue;
+import main.ast.node.expression.values.NullValue;
 import main.ast.node.statement.*;
 import main.ast.node.expression.Expression;
 import main.ast.node.expression.Identifier;
@@ -95,7 +96,10 @@ public class ASTPrinter extends Visitor<Void> {
         messagePrinter(stringValue.getLine(), stringValue.toString());
         return null;
     }
-
+    public Void visit(NullValue nullvalue) {
+        messagePrinter(nullvalue.getLine(), nullvalue.toString());
+        return null;
+    }
     public Void visit(TradeValue tradeValue) {
         messagePrinter(tradeValue.getLine(), tradeValue.toString());
         return null;
