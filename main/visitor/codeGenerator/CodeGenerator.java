@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 
 import java.io.*;
+import java.util.List;
 
 public class CodeGenerator extends Visitor<String> {
     //    You may use following items or add your own for handling typechecker
@@ -196,21 +197,21 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(IntValue intValue) {
-        String commands = "";
+        String commands = String.valueOf(intValue.getConstant());
         //todo
         return commands;
     }
 
     @Override
     public String visit(BoolValue boolValue) {
-        String commands = "";
+        String commands =  String.valueOf(boolValue.getConstant());
         //todo
         return commands;
     }
 
     @Override
     public String visit(StringValue stringValue) {
-        String commands = "";
+        String commands = stringValue.getConstant();
         //todo
         return commands;
     }
