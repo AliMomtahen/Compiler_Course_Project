@@ -175,8 +175,14 @@ public class CodeGenerator extends Visitor<String> {
 //    }
 
     @Override
-    public String visit(FunctionCall FunctionCall) {
-        //todo
+    public String visit(FunctionCall functionCall) {
+        
+        ArrayList<Expression> args = functionCall.getArgs();
+        for (Expression arg : args){
+            addCommand(arg.accept(this));
+        }
+        
+        addCommand("invokestatic/ ... ");
         return null;
     }
 
@@ -207,15 +213,23 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(IntValue intValue) {
-        String commands = String.valueOf(intValue.getConstant());
+        String commands = "";
+        String iv = String.valueOf(intValue.getConstant());
+        commands = "iconst      " + iv;
         //todo
         return commands;
     }
 
     @Override
     public String visit(BoolValue boolValue) {
-        String commands =  String.valueOf(boolValue.getConstant());
-        //todo
+        String commands = "";
+        String bv =  String.valueOf(boolValue.getConstant());
+        if(bv.equals("False") || bv.equals("false")){
+            bv = "0";
+        }else{
+            bv = "1";
+        }
+        commands = "iconst_" + bv;
         return commands;
     }
 
