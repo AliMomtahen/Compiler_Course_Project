@@ -3,6 +3,7 @@ package main.visitor.codeGenerator;
 import main.ast.node.Program;
 import java.util.HashMap;
 import main.ast.node.declaration.*;
+import main.ast.node.expression.Expression;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.NullType;
@@ -40,6 +41,7 @@ public class CodeGenerator extends Visitor<String> {
 
 //        Call your type checker here!
 //        ----------------------------
+        
         this.prepareOutputFolder();
         this.createFile("out");
 
@@ -141,8 +143,16 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(VarDeclaration varDeclaration) {
+        String varname = varDeclaration.getIdentifier().getName();
+        Type vartype = varDeclaration.getIdentifier().getType();
+        Expression assignval = varDeclaration.getRValue();
+        Integer slot_ind = this.putInHash(varname);
+        if(assignval != null){
+            addCommand(assignval.accept(this));// must first load val then
+            //addCommand();// store it to slot_ind
+        }
 
-        return "Matin Dalghak\n";
+        return null;
     }
 
     @Override
