@@ -6,16 +6,13 @@ import main.ast.node.declaration.*;
 import main.ast.node.expression.Expression;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
-import main.ast.type.primitiveType.NullType;
-import main.ast.type.primitiveType.BoolType;
+import main.ast.type.primitiveType.*;
 import main.visitor.Visitor;
 import main.ast.node.expression.FunctionCall;
 import main.ast.node.expression.values.BoolValue;
 import main.ast.node.expression.values.IntValue;
 import main.ast.node.declaration.FunctionDeclaration;
 import main.ast.node.expression.values.StringValue;
-import main.ast.type.primitiveType.FloatType;
-import main.ast.type.primitiveType.IntType;
 import main.visitor.typeAnalyzer.TypeChecker;
 
 
@@ -114,13 +111,15 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     private String makeTypeSignature(Type t) {
-        //todo
+
         if (t instanceof IntType) {
             return "I";
         } else if (t instanceof FloatType) {
             return "F";
         } else if (t instanceof BoolType) {
             return "Z";
+        } else if(t instanceof StringType){
+            return "[C";
         }
         return "V";
     }
@@ -215,8 +214,8 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(IntValue intValue) {
         String commands = "";
         String iv = String.valueOf(intValue.getConstant());
-        commands = "iconst      " + iv;
-        //todo
+        commands = "ldc      " + iv;
+
         return commands;
     }
 
@@ -229,14 +228,15 @@ public class CodeGenerator extends Visitor<String> {
         }else{
             bv = "1";
         }
-        commands = "iconst_" + bv;
+        commands = "ldc     " + bv;
         return commands;
     }
 
     @Override
     public String visit(StringValue stringValue) {
-        String commands = stringValue.getConstant();
-        //todo
+        String vall = stringValue.getConstant();
+
+        String commands = "ldc      \"" +vall + "\"";
         return commands;
     }
 
