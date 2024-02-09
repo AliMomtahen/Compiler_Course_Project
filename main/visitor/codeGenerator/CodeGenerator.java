@@ -4,6 +4,7 @@ import main.ast.node.Program;
 import java.util.HashMap;
 import main.ast.node.declaration.*;
 import main.ast.node.expression.Expression;
+import main.ast.node.expression.Identifier;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
@@ -157,7 +158,21 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(main.ast.node.statement.AssignStmt assignmentStmt) {
-        //todo
+        String val = assignmentStmt.getLValue().getName();
+        Expression iden = assignmentStmt.getLValue();
+        Expression rval = assignmentStmt.getRValue();
+        if(rval != null) {
+            addCommand(rval.accept(this));
+        }
+
+        String index = this.putInHash(val).toString();
+        Type idt = iden.getType();
+        if(idt instanceof BoolType || idt instanceof IntType || idt instanceof StringType){
+            addCommand("istore      " + index);
+        }
+        else{
+            addCommand("astore      " + index);
+        }
         return null;
     }
 

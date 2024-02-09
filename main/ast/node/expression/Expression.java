@@ -14,4 +14,7 @@ public abstract class Expression extends Node{
     public void setType(Type type) {
         this.type = type;
     }
+    public String getName() {
+        return null;
+    }
 }
