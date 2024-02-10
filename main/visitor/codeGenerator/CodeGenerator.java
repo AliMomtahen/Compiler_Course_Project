@@ -27,6 +27,8 @@ import java.io.*;
 import java.util.List;
 
 import bytecode.GetStatic;
+import bytecode.IReturn;
+import bytecode.Return;
 
 
 public class CodeGenerator extends Visitor<String> {
@@ -237,12 +239,20 @@ public class CodeGenerator extends Visitor<String> {
     @Override
     public String visit(ReturnStmt returnStmt) {
         Type type = returnStmt.getReturnedExpr().accept(expressionTypeChecker);
+        
+        String command = "";
         if(type instanceof NullType) {
-            addCommand("return");
+            Return returnObj = new Return();
+            command += returnObj.toString();
         }
         else {
-            //todo add commands to return
+            command += returnStmt.getReturnedExpr().accept(this);
+            command += "\n";
+            IReturn ireturnObj = new IReturn();
+            command += ireturnObj.toString();
         }
+        
+        addCommand(command);
         return null;
     }
 
