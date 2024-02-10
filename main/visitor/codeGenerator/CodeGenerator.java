@@ -134,20 +134,27 @@ public class CodeGenerator extends Visitor<String> {
     @Override
     public String visit(Program program) {
         createFile("out.txt");
+
         for (var dec : program.getVars()){
             addCommand(dec.accept(this));
         }
+
         for (var dec : program.getFunctions()){
             addCommand(dec.accept(this));
         }
+
+        addCommand(program.getMain().accept(this));
         return null;
     }
 
     @Override
     public String visit(MainDeclaration mainDeclaration) {
-
-        // todo 
         
+        addCommand(".method" + " public" +  " static ");
+        addCommand("main ([Ljava/lang/String;");
+        addCommand(") " + "V" + "\n");
+        addCommand(".limit stack " + "128\n");
+        addCommand(".limit locals " + "128\n");
         for (var stmt : mainDeclaration.getBody()) {
             if (stmt instanceof VarDeclaration ||
                     stmt instanceof AssignStmt ||
@@ -158,7 +165,8 @@ public class CodeGenerator extends Visitor<String> {
         }
         Return retObj = new Return();
         addCommand(retObj.toString());
-
+        addCommand("\n");
+        addCommand(".end method\n\n");
         
         return null;
     }
