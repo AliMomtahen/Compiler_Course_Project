@@ -14,6 +14,7 @@ import main.visitor.Visitor;
 import main.ast.node.expression.FunctionCall;
 import main.ast.node.expression.values.BoolValue;
 import main.ast.node.expression.values.IntValue;
+import main.ast.node.expression.values.NullValue;
 import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
 import main.bytecode.*;
@@ -257,10 +258,9 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     @Override
-    public String visit(main.ast.node.expression.values.NullValue nullValue) {
-        String commands = "";
-        //todo
-        return commands;
+    public String visit(NullValue nullValue) {
+        AConst_null acnObj = new AConst_null();
+        return acnObj.toString();
     }
 
     @Override
