@@ -144,6 +144,27 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     @Override
+    public String visit(MainDeclaration mainDeclaration) {
+        
+        // slotOf("@args");
+        for (var stmt : mainDeclaration.getBody()) {
+            if (stmt instanceof VarDeclaration ||
+                    stmt instanceof AssignStmt ||
+                    stmt instanceof ReturnStmt ||
+                    stmt instanceof ExpressionStmt ) {
+                stmt.accept(this);
+            }
+        }
+        Return retObj = new Return();
+        addCommand(retObj.toString());
+
+        // JasminMethod mainMethod = new JasminMethod("main", "V", List.of("[Ljava/lang/String;"), stmts);
+        // mainMethod.setLocalSize(slots.size());
+        // mainMethod.setStackSize(calcStackSize(stmts));
+        return null;
+    }
+
+    @Override
     public String visit(FunctionDeclaration functionDeclaration) {
         var res = new JasminMethod(functionDeclaration.getName().getName(), functionDeclaration.getReturnType(),
                 functionDeclaration.getArgs().stream().map(VarDeclaration::getType).toList(),
@@ -203,23 +224,23 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(FunctionCall functionCall) {
         Identifier functionName = functionCall.getFunctionName();
         Type t = functionCall.getType();
-        // if(functionName.getName() == "print"){
-        //     String command = "";
-        //     GetStatic staticObj = new GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;");
+        if(functionName.getName() == "print"){
+            String command = "";
+            GetStatic staticObj = new GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;");
             
-        //     InvokeVirtual invVirObj = new InvokeVirtual("java/io/PrintStream", "println", makeTypeSignature(t));
+            InvokeVirtual invVirObj = new InvokeVirtual("java/io/PrintStream", "println", makeTypeSignature(t));
             
-        //     command += staticObj.toString();
+            command += staticObj.toString();
 
-        //     for(Expression arg : functionCall.getArgs()){
-        //         command += arg.accept(this);
-        //         command += "\n";
-        //     }
-        //     command += invVirObj.toString();
-        //     return command;
-        // }
+            for(Expression arg : functionCall.getArgs()){
+                command += arg.accept(this);
+                command += "\n";
+            }
+            command += invVirObj.toString();
+            return command;
+        }
         
-        // else{
+        else{
 
             StringBuilder res = new StringBuilder();
             ArrayList<Expression> args = functionCall.getArgs();
@@ -230,7 +251,7 @@ public class CodeGenerator extends Visitor<String> {
             res.append("invokestatic/ ... ");
             
             return res.toString();
-        // }
+        }
     }
     
 
