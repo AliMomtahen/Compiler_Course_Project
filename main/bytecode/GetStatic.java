@@ -1,4 +1,4 @@
-package bytecode;
+package main.bytecode;
 
 public class GetStatic extends Bytecode {
     public final String className;

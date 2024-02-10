@@ -145,8 +145,9 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(MainDeclaration mainDeclaration) {
+
+        // todo 
         
-        // slotOf("@args");
         for (var stmt : mainDeclaration.getBody()) {
             if (stmt instanceof VarDeclaration ||
                     stmt instanceof AssignStmt ||
@@ -158,9 +159,7 @@ public class CodeGenerator extends Visitor<String> {
         Return retObj = new Return();
         addCommand(retObj.toString());
 
-        // JasminMethod mainMethod = new JasminMethod("main", "V", List.of("[Ljava/lang/String;"), stmts);
-        // mainMethod.setLocalSize(slots.size());
-        // mainMethod.setStackSize(calcStackSize(stmts));
+        
         return null;
     }
 
@@ -272,6 +271,24 @@ public class CodeGenerator extends Visitor<String> {
         }
         
         addCommand(command);
+        return null;
+    }
+
+    @Override
+    public String visit(WhileStmt whileStmt){
+        Expression condition = whileStmt.getCondition();
+        addCommand("Label_start : ");
+        addCommand(condition.accept(this));
+        If_cmple if_obj = new If_cmple();
+        addCommand(if_obj.toString());
+        addCommand("goto" + "Label_exit");
+
+        addCommand("Label_body : ");
+        for(Statement stmt : whileStmt.getBody()){
+            addCommand(stmt.accept(this));
+        }
+        addCommand("goto" + "Label_start");
+        addCommand("Label_exit : ");
         return null;
     }
 
