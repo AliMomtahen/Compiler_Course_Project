@@ -3,6 +3,7 @@ package main.visitor.codeGenerator;
 import main.ast.node.Program;
 import java.util.HashMap;
 import main.ast.node.declaration.*;
+import main.ast.node.expression.BinaryExpression;
 import main.ast.node.expression.Expression;
 import main.ast.node.expression.Identifier;
 import main.ast.node.statement.*;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 
 import java.io.*;
 import java.util.List;
+
+import bytecode.IRem;
 
 public class CodeGenerator extends Visitor<String> {
     //    You may use following items or add your own for handling typechecker
@@ -230,6 +233,42 @@ public class CodeGenerator extends Visitor<String> {
         String commands = "";
         //todo
         return commands;
+    }
+
+    @Override
+    public String visit(BinaryExpression binaryExpression) {
+        Identifier lOperand = (Identifier)binaryExpression.getLeft();
+        Identifier rOperand = (Identifier)binaryExpression.getRight();
+        String command = "";
+        command += lOperand.accept(this);
+        command += "\n";
+        command += rOperand.accept(this);
+        command += "\n";
+        switch (binaryExpression.getBinaryOperator()) {
+            case PLUS -> {
+                IAdd obj = new IAdd();
+                command += obj.toString();
+            }
+            case MINUS-> {
+                INeg obj = new INeg();
+                command += obj.toString();
+            }
+            case MULT -> {
+                IMul obj = new IMul();
+                command += obj.toString();
+            }
+            case DIV -> {
+                IDiv obj = new IDiv();
+                command += obj.toString();
+            }
+            case MOD -> {
+                IRem obj = new IRem();
+                command += obj.toString();
+            }
+            default -> {
+            }
+        }
+        return command;
     }
 
     @Override
