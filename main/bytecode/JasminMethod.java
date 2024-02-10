@@ -20,6 +20,17 @@ public class JasminMethod extends Bytecode{
 
 //    private Integer stackSize = 128;
 //    private Integer localSize = 128;
+    
+    public JasminMethod(String name, Type returnType, List<Type> args, List<String> body) {
+        this.name = name;
+        this.returnType = makeTypeSignature(returnType);
+
+        for(Type s : args){
+            this.args.add(makeTypeSignature(s));
+        }
+        this.body = body;
+    }
+    
     private String makeTypeSignature(Type t) {
 
         if (t instanceof IntType) {
@@ -32,15 +43,6 @@ public class JasminMethod extends Bytecode{
             return "[C";
         }
         return "V";
-    }
-    public JasminMethod(String name, Type returnType, List<Type> args, List<String> body) {
-        this.name = name;
-        this.returnType = makeTypeSignature(returnType);
-
-        for(Type s : args){
-            this.args.add(makeTypeSignature(s));
-        }
-        this.body = body;
     }
 
     public String getName() {

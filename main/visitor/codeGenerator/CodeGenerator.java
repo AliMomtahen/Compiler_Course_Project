@@ -10,9 +10,9 @@ import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
 import main.visitor.Visitor;
 import main.ast.node.expression.FunctionCall;
+import main.ast.node.expression.Identifier;
 import main.ast.node.expression.values.BoolValue;
 import main.ast.node.expression.values.IntValue;
-import main.ast.node.declaration.FunctionDeclaration;
 import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
 import main.bytecode.*;
@@ -233,6 +233,43 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     @Override
+    public String visit(main.ast.node.expression.UnaryExpression unaryExpression) {
+        Identifier operand = (Identifier)unaryExpression.getOperand();
+        String command = unaryExpression.getOperand().accept(this);
+        int index = putInHash(operand.getName());
+        Type t = operand.accept(expressionTypeChecker);
+        switch (unaryExpression.getUnaryOperator()) {
+            case INC -> {
+                command += "i" + "inc\t" + index + ", " + "1\n";
+            }
+
+            case DEC -> {
+                command += "i" + "inc\t" + index + ", " + "-1\n";
+            }
+
+            case MINUS -> {
+                command += operand.accept(this);
+                command += "\nineg";
+            }
+
+            case NOT -> {
+                command += operand.accept(this);
+                command += "\n";
+                IConst iconstObject = new IConst(1);
+                command += iconstObject.toString();
+                command += "\n";
+                IXor xorObject = new IXor();
+                command += xorObject.toString();
+                command += "\n";
+            }
+
+            case BIT_NOT -> {}
+
+        }
+        return null;
+    }
+
+    @Override
     public String visit(IntValue intValue) {
         String commands = "";
         String iv = String.valueOf(intValue.getConstant());
@@ -260,6 +297,12 @@ public class CodeGenerator extends Visitor<String> {
 
         String commands = "ldc      \"" +vall + "\"";
         return commands;
+    }
+
+    @Override
+    public String visit(Identifier identifier) {
+        ILoad iloadObject = (new ILoad(putInHash(identifier.getName())));
+        return iloadObject.toString();
     }
 
 }
