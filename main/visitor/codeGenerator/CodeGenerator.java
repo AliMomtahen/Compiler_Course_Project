@@ -27,9 +27,6 @@ import java.util.ArrayList;
 import java.io.*;
 import java.util.List;
 
-import bytecode.GetStatic;
-import bytecode.IReturn;
-import bytecode.Return;
 
 
 public class CodeGenerator extends Visitor<String> {
@@ -206,23 +203,23 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(FunctionCall functionCall) {
         Identifier functionName = functionCall.getFunctionName();
         Type t = functionCall.getType();
-        if(functionName.getName() == "print"){
-            String command = "";
-            GetStatic staticObj = new GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;");
+        // if(functionName.getName() == "print"){
+        //     String command = "";
+        //     GetStatic staticObj = new GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;");
             
-            InvokeVirtual invVirObj = new InvokeVirtual("java/io/PrintStream", "println", makeTypeSignature(t));
+        //     InvokeVirtual invVirObj = new InvokeVirtual("java/io/PrintStream", "println", makeTypeSignature(t));
             
-            command += staticObj.toString();
+        //     command += staticObj.toString();
 
-            for(Expression arg : functionCall.getArgs()){
-                command += arg.accept(this);
-                command += "\n";
-            }
-            command += invVirObj.toString();
-            return command;
-        }
+        //     for(Expression arg : functionCall.getArgs()){
+        //         command += arg.accept(this);
+        //         command += "\n";
+        //     }
+        //     command += invVirObj.toString();
+        //     return command;
+        // }
         
-        else{
+        // else{
 
             StringBuilder res = new StringBuilder();
             ArrayList<Expression> args = functionCall.getArgs();
@@ -233,7 +230,7 @@ public class CodeGenerator extends Visitor<String> {
             res.append("invokestatic/ ... ");
             
             return res.toString();
-        }
+        // }
     }
     
 
