@@ -15,6 +15,7 @@ import main.ast.node.expression.values.IntValue;
 import main.ast.node.declaration.FunctionDeclaration;
 import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
+import java.lang.String.*
 
 
 import java.util.ArrayList;
@@ -139,7 +140,11 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(FunctionDeclaration functionDeclaration) {
-        return null;
+        var res = new JasminMethod(functionDeclaration.getName().getName(), functionDeclaration.getReturnType(),
+                functionDeclaration.getArgs().stream().map(VarDeclaration::getType).toList(),
+                functionDeclaration.getBody().stream().map(s->s.accept(this)).toList());
+        Signatures.put(functionDeclaration.getName().getName(), res);
+        return res.toString();
     }
 
     @Override
