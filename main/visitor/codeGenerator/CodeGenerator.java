@@ -6,12 +6,12 @@ import main.ast.node.declaration.*;
 import main.ast.node.expression.BinaryExpression;
 import main.ast.node.expression.Expression;
 import main.ast.node.expression.Identifier;
+import main.ast.node.expression.UnaryExpression;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
 import main.visitor.Visitor;
 import main.ast.node.expression.FunctionCall;
-import main.ast.node.expression.Identifier;
 import main.ast.node.expression.values.BoolValue;
 import main.ast.node.expression.values.IntValue;
 import main.ast.node.expression.values.StringValue;
@@ -26,7 +26,8 @@ import java.util.ArrayList;
 import java.io.*;
 import java.util.List;
 
-import bytecode.IRem;
+import bytecode.GetStatic;
+
 
 public class CodeGenerator extends Visitor<String> {
     //    You may use following items or add your own for handling typechecker
@@ -167,7 +168,7 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     @Override
-    public String visit(main.ast.node.statement.AssignStmt assignmentStmt) {
+    public String visit(AssignStmt assignmentStmt) {
         String val = assignmentStmt.getLValue().getName();
         Expression iden = assignmentStmt.getLValue();
         Expression rval = assignmentStmt.getRValue();
@@ -200,21 +201,38 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(FunctionCall functionCall) {
-        StringBuilder res = new StringBuilder();
-        ArrayList<Expression> args = functionCall.getArgs();
-        for (Expression arg : args){
-            res.append(arg.accept(this));
+        Identifier functionName = functionCall.getFunctionName();
+        Type t = functionCall.getType();
+        if(functionName.getName() == "print"){
+            String command = "";
+            GetStatic staticObj = new GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;");
+            
+            InvokeVirtual invVirObj = new InvokeVirtual("java/io/PrintStream", "println", makeTypeSignature(t));
+            
+            command += staticObj.toString();
+
+            for(Expression arg : functionCall.getArgs()){
+                command += arg.accept(this);
+                command += "\n";
+            }
+            command += invVirObj.toString();
+            return command;
         }
         
-        res.append("invokestatic/ ... ");
-        return res.toString();
-    }
+        else{
 
-//    @Override
-//    public String visit(PrintStmt print) {
-//        //todo
-//        return null;
-//    }
+            StringBuilder res = new StringBuilder();
+            ArrayList<Expression> args = functionCall.getArgs();
+            for (Expression arg : args){
+                res.append(arg.accept(this));
+            }
+            
+            res.append("invokestatic/ ... ");
+            
+            return res.toString();
+        }
+    }
+    
 
     @Override
     public String visit(ReturnStmt returnStmt) {
@@ -272,7 +290,7 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     @Override
-    public String visit(main.ast.node.expression.UnaryExpression unaryExpression) {
+    public String visit(UnaryExpression unaryExpression) {
         Identifier operand = (Identifier)unaryExpression.getOperand();
         String command = unaryExpression.getOperand().accept(this);
         int index = putInHash(operand.getName());
@@ -305,7 +323,7 @@ public class CodeGenerator extends Visitor<String> {
             case BIT_NOT -> {}
 
         }
-        return null;
+        return command;
     }
 
     @Override
