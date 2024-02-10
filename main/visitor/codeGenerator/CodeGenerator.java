@@ -15,7 +15,8 @@ import main.ast.node.expression.values.IntValue;
 import main.ast.node.declaration.FunctionDeclaration;
 import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
-import java.lang.String.*
+import main.bytecode.*;
+import java.lang.String.*;
 
 
 import java.util.ArrayList;
@@ -149,16 +150,17 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(VarDeclaration varDeclaration) {
+        var res = new StringBuilder();
         String varname = varDeclaration.getIdentifier().getName();
         Type vartype = varDeclaration.getIdentifier().getType();
         Expression assignval = varDeclaration.getRValue();
         Integer slot_ind = this.putInHash(varname);
         if(assignval != null){
-            addCommand(assignval.accept(this));// must first load val then
+            res.append(assignval.accept(this));// must first load val then
             //addCommand();// store it to slot_ind
         }
 
-        return null;
+        return res.toString();
     }
 
     @Override
@@ -195,14 +197,14 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(FunctionCall functionCall) {
-        
+        StringBuilder res = new StringBuilder();
         ArrayList<Expression> args = functionCall.getArgs();
         for (Expression arg : args){
-            addCommand(arg.accept(this));
+            res.append(arg.accept(this));
         }
         
-        addCommand("invokestatic/ ... ");
-        return null;
+        res.append("invokestatic/ ... ");
+        return res.toString();
     }
 
 //    @Override
