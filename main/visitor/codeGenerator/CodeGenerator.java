@@ -220,11 +220,7 @@ public class CodeGenerator extends Visitor<String> {
 //        return null;
 //    }
 
-   @Override
-   public String visit(IfElseStmt ifElseStmt) {
-       //todo
-       return null;
-   }
+   
 
     @Override
     public String visit(FunctionCall functionCall) {
@@ -291,9 +287,27 @@ public class CodeGenerator extends Visitor<String> {
         for(Statement stmt : whileStmt.getBody()){
             addCommand(stmt.accept(this));
         }
-        addCommand("goto" + "Label_start");
+        addCommand("goto\t\t" + "Label_start");
         addCommand("Label_else : ");
         return null;
+    }
+
+    @Override
+    public String visit(IfElseStmt ifElseStmt) {
+       Expression condition = ifElseStmt.getCondition();
+       addCommand(condition.accept(this));
+
+       addCommand("Label_if : ");
+       for(Statement stmt : ifElseStmt.getThenBody()){
+            addCommand(stmt.accept(this));
+       }
+       addCommand("goto\t\t" + "Label_exit");
+       addCommand("Label_else : ");
+       for(Statement stmt : ifElseStmt.getElseBody()){
+            addCommand(stmt.accept(this));
+       }
+       addCommand("Label_exit : ");
+       return null;
     }
 
     @Override
