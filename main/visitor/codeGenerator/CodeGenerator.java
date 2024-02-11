@@ -412,7 +412,16 @@ public class CodeGenerator extends Visitor<String> {
                 command += "\n";
             }
 
-            case BIT_NOT -> {}
+            case BIT_NOT -> {
+                command += operand.accept(this);
+                command += "\n";
+                IConst iconstObject = new IConst(-1);
+                command += iconstObject.toString();
+                command += "\n";
+                IXor xorObject = new IXor();
+                command += xorObject.toString();
+                command += "\n";
+            }
 
         }
         return command;
