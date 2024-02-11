@@ -7,6 +7,7 @@ import main.ast.node.expression.BinaryExpression;
 import main.ast.node.expression.Expression;
 import main.ast.node.expression.Identifier;
 import main.ast.node.expression.UnaryExpression;
+import main.ast.node.expression.operators.BinaryOperator;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
@@ -150,9 +151,7 @@ public class CodeGenerator extends Visitor<String> {
     @Override
     public String visit(MainDeclaration mainDeclaration) {
         
-        addCommand(".method" + " public" +  " static ");
-        addCommand("main ([Ljava/lang/String;");
-        addCommand(") " + "V" + "\n");
+        addCommand(".method public static main([Ljava/lang/String;)V");
         addCommand(".limit stack " + "128\n");
         addCommand(".limit locals " + "128\n");
         for (var stmt : mainDeclaration.getBody()) {
@@ -221,11 +220,11 @@ public class CodeGenerator extends Visitor<String> {
 //        return null;
 //    }
 
-//    @Override
-//    public String visit(ConditionalStmt conditionalStmt) {
-//        //todo
-//        return null;
-//    }
+   @Override
+   public String visit(IfElseStmt ifElseStmt) {
+       //todo
+       return null;
+   }
 
     @Override
     public String visit(FunctionCall functionCall) {
@@ -261,7 +260,6 @@ public class CodeGenerator extends Visitor<String> {
         }
     }
     
-
     @Override
     public String visit(ReturnStmt returnStmt) {
         Type type = returnStmt.getReturnedExpr().accept(expressionTypeChecker);
@@ -287,16 +285,14 @@ public class CodeGenerator extends Visitor<String> {
         Expression condition = whileStmt.getCondition();
         addCommand("Label_start : ");
         addCommand(condition.accept(this));
-        If_cmple if_obj = new If_cmple();
-        addCommand(if_obj.toString());
-        addCommand("goto" + "Label_exit");
+        
 
-        addCommand("Label_body : ");
+        addCommand("Label_if : ");
         for(Statement stmt : whileStmt.getBody()){
             addCommand(stmt.accept(this));
         }
         addCommand("goto" + "Label_start");
-        addCommand("Label_exit : ");
+        addCommand("Label_else : ");
         return null;
     }
 
@@ -311,32 +307,75 @@ public class CodeGenerator extends Visitor<String> {
         Identifier lOperand = (Identifier)binaryExpression.getLeft();
         Identifier rOperand = (Identifier)binaryExpression.getRight();
         String command = "";
-        command += lOperand.accept(this);
-        command += "\n";
-        command += rOperand.accept(this);
-        command += "\n";
-        switch (binaryExpression.getBinaryOperator()) {
-            case PLUS -> {
-                IAdd obj = new IAdd();
-                command += obj.toString();
-            }
-            case MINUS-> {
-                INeg obj = new INeg();
-                command += obj.toString();
-            }
-            case MULT -> {
-                IMul obj = new IMul();
-                command += obj.toString();
-            }
-            case DIV -> {
-                IDiv obj = new IDiv();
-                command += obj.toString();
-            }
-            case MOD -> {
-                IRem obj = new IRem();
-                command += obj.toString();
-            }
-            default -> {
+
+        if(binaryExpression.getBinaryOperator() == BinaryOperator.AND){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += "ifeq        Label_else\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "ifeq        Label_else\n";
+        }
+        else if(binaryExpression.getBinaryOperator() == BinaryOperator.OR){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += "ifge        Label_if\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "ifeq        Label_else\n";
+        }
+        else if(binaryExpression.getBinaryOperator() == BinaryOperator.LT){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "if_icmple        Label_if\n";
+            command += "goto        Label_else\n";
+        }
+        else if(binaryExpression.getBinaryOperator() == BinaryOperator.GT){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "if_icmpge        Label_if\n";
+            command += "goto        Label_else\n";
+        }
+        else if(binaryExpression.getBinaryOperator() == BinaryOperator.EQ){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "if_icmpeq        Label_if\n";
+            command += "goto        Label_else\n";
+        }
+        else{
+            command += lOperand.accept(this);
+            command += "\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            switch (binaryExpression.getBinaryOperator()) {
+                case PLUS -> {
+                    IAdd obj = new IAdd();
+                    command += obj.toString();
+                }
+                case MINUS-> {
+                    INeg obj = new INeg();
+                    command += obj.toString();
+                }
+                case MULT -> {
+                    IMul obj = new IMul();
+                    command += obj.toString();
+                }
+                case DIV -> {
+                    IDiv obj = new IDiv();
+                    command += obj.toString();
+                }
+                case MOD -> {
+                    IRem obj = new IRem();
+                    command += obj.toString();
+                }
+                default -> {
+                }
             }
         }
         return command;
