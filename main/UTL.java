@@ -2,8 +2,8 @@ package main;
 
 import main.ast.node.Program;
 import main.compileError.CompileError;
-import main.grammar.UTLLexer;
-import main.grammar.UTLParser;
+
+
 import main.visitor.astPrinter.ASTPrinter;
 import main.visitor.nameAnalyzer.NameAnalyzer;
 import main.visitor.typeAnalyzer.TypeAnalyzer;
@@ -11,7 +11,7 @@ import main.visitor.codeGenerator.CodeGenerator;
 import org.antlr.v4.runtime.*;
 
 import java.io.IOException;
-
+import parsers.*;
 public class UTL {
     public static void main(String[] args) throws IOException {
         CharStream reader = CharStreams.fromFileName(args[0]);

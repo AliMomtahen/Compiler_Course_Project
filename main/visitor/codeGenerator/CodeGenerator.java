@@ -104,6 +104,9 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     private void addCommand(String command) {
+        if(command == null){
+            return;
+        }
         try {
             command = String.join("\n\t\t", command.split("\n"));
             if(command.startsWith("Label_"))
@@ -303,8 +306,8 @@ public class CodeGenerator extends Visitor<String> {
         return null;
     }
 public String visit(BinaryExpression binaryExpression) {
-        Identifier lOperand = (Identifier)binaryExpression.getLeft();
-        Identifier rOperand = (Identifier)binaryExpression.getRight();
+        Expression   lOperand = binaryExpression.getLeft();
+        Expression rOperand = binaryExpression.getRight();
         String command = "";
 
         if(binaryExpression.getBinaryOperator() == BinaryOperator.AND){
