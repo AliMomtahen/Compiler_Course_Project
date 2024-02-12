@@ -211,7 +211,7 @@ public class CodeGenerator extends Visitor<String> {
                 res.append("fstore      " + slot_ind + "\n");
             }
             else{
-                res.append(vartype.toString() + "      " + slot_ind + "\n");
+                res.append("astore      " + slot_ind + "\n");
             }
         }
 
