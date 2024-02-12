@@ -7,7 +7,6 @@ import main.ast.node.expression.BinaryExpression;
 import main.ast.node.expression.Expression;
 import main.ast.node.expression.Identifier;
 import main.ast.node.expression.UnaryExpression;
-import main.ast.node.expression.operators.BinaryOperator;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
@@ -15,7 +14,6 @@ import main.visitor.Visitor;
 import main.ast.node.expression.FunctionCall;
 import main.ast.node.expression.values.BoolValue;
 import main.ast.node.expression.values.IntValue;
-import main.ast.node.expression.values.NullValue;
 import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
 import main.bytecode.*;
@@ -27,7 +25,9 @@ import java.util.ArrayList;
 
 import java.io.*;
 import java.util.List;
+import java.util.Map;
 
+import main.bytecode.*;
 
 
 public class CodeGenerator extends Visitor<String> {
@@ -38,6 +38,8 @@ public class CodeGenerator extends Visitor<String> {
     private String outputPath;
     private FileWriter currentFile;
     private FunctionDeclaration currentMethod;
+
+    private HashMap<String , String> env;
 
     public CodeGenerator() {
 //        this.classHierarchy = classHierarchy;
@@ -135,38 +137,12 @@ public class CodeGenerator extends Visitor<String> {
     @Override
     public String visit(Program program) {
         createFile("out.txt");
-
         for (var dec : program.getVars()){
             addCommand(dec.accept(this));
         }
-
         for (var dec : program.getFunctions()){
             addCommand(dec.accept(this));
         }
-
-        addCommand(program.getMain().accept(this));
-        return null;
-    }
-
-    @Override
-    public String visit(MainDeclaration mainDeclaration) {
-        
-        addCommand(".method public static main([Ljava/lang/String;)V");
-        addCommand(".limit stack " + "128\n");
-        addCommand(".limit locals " + "128\n");
-        for (var stmt : mainDeclaration.getBody()) {
-            if (stmt instanceof VarDeclaration ||
-                    stmt instanceof AssignStmt ||
-                    stmt instanceof ReturnStmt ||
-                    stmt instanceof ExpressionStmt ) {
-                stmt.accept(this);
-            }
-        }
-        Return retObj = new Return();
-        addCommand(retObj.toString());
-        addCommand("\n");
-        addCommand(".end method\n\n");
-        
         return null;
     }
 
@@ -175,20 +151,26 @@ public class CodeGenerator extends Visitor<String> {
         var res = new JasminMethod(functionDeclaration.getName().getName(), functionDeclaration.getReturnType(),
                 functionDeclaration.getArgs().stream().map(VarDeclaration::getType).toList(),
                 functionDeclaration.getBody().stream().map(s->s.accept(this)).toList());
-        Signatures.put(functionDeclaration.getName().getName(), res);
+        env.put(functionDeclaration.getName().getName(), res.toString());
         return res.toString();
     }
 
     @Override
     public String visit(VarDeclaration varDeclaration) {
         var res = new StringBuilder();
-        String varname = varDeclaration.getIdentifier().getName();
+        String var_name = varDeclaration.getIdentifier().getName();
         Type vartype = varDeclaration.getIdentifier().getType();
-        Expression assignval = varDeclaration.getRValue();
-        Integer slot_ind = this.putInHash(varname);
-        if(assignval != null){
-            res.append(assignval.accept(this));// must first load val then
+        Expression assignVal = varDeclaration.getRValue();
+        Integer slot_ind = this.putInHash(var_name);
+        if(assignVal != null){
+            res.append(assignVal.accept(this));// must first load val then
             //addCommand();// store it to slot_ind
+            if(vartype instanceof BoolType || vartype instanceof IntType || vartype instanceof StringType){
+                res.append("istore      " + slot_ind + "\n");
+            }
+            else{
+                res.append("astore      " + slot_ind + "\n");
+            }
         }
 
         return res.toString();
@@ -196,22 +178,23 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(AssignStmt assignmentStmt) {
+        StringBuilder res = new StringBuilder();
         String val = assignmentStmt.getLValue().getName();
         Expression iden = assignmentStmt.getLValue();
         Expression rval = assignmentStmt.getRValue();
         if(rval != null) {
-            addCommand(rval.accept(this));
+            res.append(rval.accept(this));
         }
 
         String index = this.putInHash(val).toString();
         Type idt = iden.getType();
         if(idt instanceof BoolType || idt instanceof IntType || idt instanceof StringType){
-            addCommand("istore      " + index);
+            res.append("istore      " + index + "\n");
         }
         else{
-            addCommand("astore      " + index);
+            res.append("astore      " + index + "\n");
         }
-        return null;
+        return res.toString();
     }
 
 //    @Override
@@ -220,7 +203,11 @@ public class CodeGenerator extends Visitor<String> {
 //        return null;
 //    }
 
-   
+//    @Override
+//    public String visit(ConditionalStmt conditionalStmt) {
+//        //todo
+//        return null;
+//    }
 
     @Override
     public String visit(FunctionCall functionCall) {
@@ -256,64 +243,28 @@ public class CodeGenerator extends Visitor<String> {
         }
     }
     
+
     @Override
     public String visit(ReturnStmt returnStmt) {
+        StringBuilder res = new StringBuilder();
         Type type = returnStmt.getReturnedExpr().accept(expressionTypeChecker);
-        
-        String command = "";
         if(type instanceof NullType) {
-            Return returnObj = new Return();
-            command += returnObj.toString();
+            res.append("return");
         }
         else {
-            command += returnStmt.getReturnedExpr().accept(this);
-            command += "\n";
-            IReturn ireturnObj = new IReturn();
-            command += ireturnObj.toString();
+            var expr = returnStmt.getReturnedExpr();
+            res.append(expr.accept(this));
+            res.append("ireturn\n");
+               
         }
-        
-        addCommand(command);
-        return null;
+        return res.toString();
     }
 
     @Override
-    public String visit(WhileStmt whileStmt){
-        Expression condition = whileStmt.getCondition();
-        addCommand("Label_start : ");
-        addCommand(condition.accept(this));
-        
-
-        addCommand("Label_if : ");
-        for(Statement stmt : whileStmt.getBody()){
-            addCommand(stmt.accept(this));
-        }
-        addCommand("goto\t\t" + "Label_start");
-        addCommand("Label_else : ");
-        return null;
-    }
-
-    @Override
-    public String visit(IfElseStmt ifElseStmt) {
-       Expression condition = ifElseStmt.getCondition();
-       addCommand(condition.accept(this));
-
-       addCommand("Label_if : ");
-       for(Statement stmt : ifElseStmt.getThenBody()){
-            addCommand(stmt.accept(this));
-       }
-       addCommand("goto\t\t" + "Label_exit");
-       addCommand("Label_else : ");
-       for(Statement stmt : ifElseStmt.getElseBody()){
-            addCommand(stmt.accept(this));
-       }
-       addCommand("Label_exit : ");
-       return null;
-    }
-
-    @Override
-    public String visit(NullValue nullValue) {
-        AConst_null acnObj = new AConst_null();
-        return acnObj.toString();
+    public String visit(main.ast.node.expression.values.NullValue nullValue) {
+        String commands = "";
+        //todo
+        return commands;
     }
 
     @Override
@@ -321,75 +272,32 @@ public class CodeGenerator extends Visitor<String> {
         Identifier lOperand = (Identifier)binaryExpression.getLeft();
         Identifier rOperand = (Identifier)binaryExpression.getRight();
         String command = "";
-
-        if(binaryExpression.getBinaryOperator() == BinaryOperator.AND){
-            command += lOperand.accept(this);
-            command += "\n";
-            command += "ifeq        Label_else\n";
-            command += rOperand.accept(this);
-            command += "\n";
-            command += "ifeq        Label_else\n";
-        }
-        else if(binaryExpression.getBinaryOperator() == BinaryOperator.OR){
-            command += lOperand.accept(this);
-            command += "\n";
-            command += "ifge        Label_if\n";
-            command += rOperand.accept(this);
-            command += "\n";
-            command += "ifeq        Label_else\n";
-        }
-        else if(binaryExpression.getBinaryOperator() == BinaryOperator.LT){
-            command += lOperand.accept(this);
-            command += "\n";
-            command += rOperand.accept(this);
-            command += "\n";
-            command += "if_icmple        Label_if\n";
-            command += "goto        Label_else\n";
-        }
-        else if(binaryExpression.getBinaryOperator() == BinaryOperator.GT){
-            command += lOperand.accept(this);
-            command += "\n";
-            command += rOperand.accept(this);
-            command += "\n";
-            command += "if_icmpge        Label_if\n";
-            command += "goto        Label_else\n";
-        }
-        else if(binaryExpression.getBinaryOperator() == BinaryOperator.EQ){
-            command += lOperand.accept(this);
-            command += "\n";
-            command += rOperand.accept(this);
-            command += "\n";
-            command += "if_icmpeq        Label_if\n";
-            command += "goto        Label_else\n";
-        }
-        else{
-            command += lOperand.accept(this);
-            command += "\n";
-            command += rOperand.accept(this);
-            command += "\n";
-            switch (binaryExpression.getBinaryOperator()) {
-                case PLUS -> {
-                    IAdd obj = new IAdd();
-                    command += obj.toString();
-                }
-                case MINUS-> {
-                    INeg obj = new INeg();
-                    command += obj.toString();
-                }
-                case MULT -> {
-                    IMul obj = new IMul();
-                    command += obj.toString();
-                }
-                case DIV -> {
-                    IDiv obj = new IDiv();
-                    command += obj.toString();
-                }
-                case MOD -> {
-                    IRem obj = new IRem();
-                    command += obj.toString();
-                }
-                default -> {
-                }
+        command += lOperand.accept(this);
+        command += "\n";
+        command += rOperand.accept(this);
+        command += "\n";
+        switch (binaryExpression.getBinaryOperator()) {
+            case PLUS -> {
+                IAdd obj = new IAdd();
+                command += obj.toString();
+            }
+            case MINUS-> {
+                INeg obj = new INeg();
+                command += obj.toString();
+            }
+            case MULT -> {
+                IMul obj = new IMul();
+                command += obj.toString();
+            }
+            case DIV -> {
+                IDiv obj = new IDiv();
+                command += obj.toString();
+            }
+            case MOD -> {
+                IRem obj = new IRem();
+                command += obj.toString();
+            }
+            default -> {
             }
         }
         return command;
@@ -426,16 +334,7 @@ public class CodeGenerator extends Visitor<String> {
                 command += "\n";
             }
 
-            case BIT_NOT -> {
-                command += operand.accept(this);
-                command += "\n";
-                IConst iconstObject = new IConst(-1);
-                command += iconstObject.toString();
-                command += "\n";
-                IXor xorObject = new IXor();
-                command += xorObject.toString();
-                command += "\n";
-            }
+            case BIT_NOT -> {}
 
         }
         return command;

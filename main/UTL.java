@@ -5,6 +5,7 @@ import main.compileError.CompileError;
 import main.visitor.astPrinter.ASTPrinter;
 import main.visitor.nameAnalyzer.NameAnalyzer;
 import main.visitor.typeAnalyzer.TypeAnalyzer;
+import main.visitor.codeGenerator.CodeGenerator;
 import org.antlr.v4.runtime.*;
 import parsers.*;
 
@@ -25,5 +26,8 @@ public class UTL {
             for(CompileError compileError: typeAnalyzer.typeErrors)
                 System.out.println(compileError.getMessage());
         }
+
+        CodeGenerator codeGen = new CodeGenerator();
+        codeGen.visit(program);
     }
 }
