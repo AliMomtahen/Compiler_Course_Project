@@ -320,12 +320,13 @@ public class CodeGenerator extends Visitor<String> {
             InvokeVirtual invVirObj = new InvokeVirtual("java/io/PrintStream", "println", makeTypeSignature(t));
             
             command += staticObj.toString();
-
+            command+="\n";
             for(Expression arg : functionCall.getArgs()){
                 command += arg.accept(this);
                 command += "\n";
             }
             command += invVirObj.toString();
+            command+="\n";
             return command;
         }else if(functionName.getName().equals("Order")){
 
