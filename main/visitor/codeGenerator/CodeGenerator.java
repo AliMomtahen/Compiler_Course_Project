@@ -136,6 +136,7 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(Program program) {
+        var t = program.accept(this.expressionTypeChecker);
         createFile("out.txt");
         addCommand(".class public UTL\n");
         addCommand(".super java/lang/Object\n\n");
@@ -399,15 +400,15 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(WhileStmt whileStmt){
         var res = new StringBuilder();
         Expression condition = whileStmt.getCondition();
-        res.append("Label_start : ");
+        res.append("Label_start : \n");
         res.append(condition.accept(this));
 
-        res.append("Label_if : ");
+        res.append("Label_if : \n");
         for(Statement stmt : whileStmt.getBody()){
             res.append(stmt.accept(this));
         }
-        res.append("goto\t\t" + "Label_start");
-        res.append("Label_else : ");
+        res.append("goto\t\t" + "Label_start\n");
+        res.append("Label_else : \n");
         return res.toString();
     }
 
@@ -417,16 +418,16 @@ public class CodeGenerator extends Visitor<String> {
         Expression condition = ifElseStmt.getCondition();
         res.append(condition.accept(this));
 
-        res.append("Label_if : ");
+        res.append("Label_if : \n");
         for(Statement stmt : ifElseStmt.getThenBody()){
             res.append(stmt.accept(this));
         }
-        res.append("goto\t\t" + "Label_exit");
-        res.append("Label_else : ");
+        res.append("goto\t\t" + "Label_exit\n");
+        res.append("Label_else : \n");
         for(Statement stmt : ifElseStmt.getElseBody()){
             res.append(stmt.accept(this));
         }
-        res.append("Label_exit : ");
+        res.append("Label_exit : \n");
         return res.toString();
     }
 
@@ -589,8 +590,16 @@ public String visit(BinaryExpression binaryExpression) {
 
     @Override
     public String visit(Identifier identifier) {
-        ILoad iloadObject = (new ILoad(putInHash(identifier.getName())));
-        return iloadObject.toString();
+        Type type = identifier.accept(this.expressionTypeChecker);
+        int index = (putInHash(identifier.getName()));
+        if(type instanceof FloatType){
+            return "\t" + (index < 4 ? "fload_" + index : "fload " + index )+ "\n";
+        }
+        else{
+            ILoad iloadObject = (new ILoad(index));
+            return iloadObject.toString();
+        }
+
     }
 
 }
