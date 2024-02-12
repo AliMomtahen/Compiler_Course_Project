@@ -1,7 +1,7 @@
 package main.bytecode;
 
 import java.util.List;
-import main.ast.*;
+
 import main.ast.type.primitiveType.BoolType;
 import main.ast.type.primitiveType.FloatType;
 import main.ast.type.primitiveType.IntType;

@@ -51,7 +51,8 @@ public class CodeGenerator extends Visitor<String> {
 
 //        Call your type checker here!
 //        ----------------------------
-        
+        this.slots = HashMap.newHashMap(128);
+        this.env = HashMap.newHashMap(128);
         this.prepareOutputFolder();
         this.createFile("out");
 
@@ -384,7 +385,7 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(IntValue intValue) {
         String commands = "";
         String iv = String.valueOf(intValue.getConstant());
-        commands = "ldc      " + iv;
+        commands = "ldc      " + iv + "\n";
 
         return commands;
     }
@@ -398,7 +399,7 @@ public class CodeGenerator extends Visitor<String> {
         }else{
             bv = "1";
         }
-        commands = "ldc     " + bv;
+        commands = "ldc     " + bv + "\n";
         return commands;
     }
 
