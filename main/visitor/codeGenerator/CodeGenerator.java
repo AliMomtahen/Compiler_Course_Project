@@ -590,7 +590,7 @@ public String visit(BinaryExpression binaryExpression) {
 
     @Override
     public String visit(Identifier identifier) {
-        Type type = identifier.accept(this.expressionTypeChecker);
+        Type type = identifier.getType();
         int index = (putInHash(identifier.getName()));
         if(type instanceof FloatType){
             return "\t" + (index < 4 ? "fload_" + index : "fload " + index )+ "\n";

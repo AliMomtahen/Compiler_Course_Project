@@ -112,6 +112,7 @@ public class TypeChecker extends Visitor<Type> {
         String idName = identifier.getName();
         try {
             SymbolTableItem item = SymbolTable.top.get(VariableItem.START_KEY + idName);
+            identifier.setType(((VariableItem) item).getType());
             return ((VariableItem) item).getType();
         } catch (ItemNotFoundException e) {
             // error variable not declared
