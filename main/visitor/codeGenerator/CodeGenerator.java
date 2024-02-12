@@ -139,7 +139,7 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(Program program) {
-        createFile("out.txt");
+
         for (var dec : program.getVars()){
             addCommand(dec.accept(this));
         }
@@ -415,6 +415,14 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(Identifier identifier) {
         ILoad iloadObject = (new ILoad(putInHash(identifier.getName())));
         return iloadObject.toString();
+    }
+
+
+    @Override
+    public String visit(ForStmt forStmt){
+
+
+        return null;
     }
 
 }
