@@ -41,6 +41,7 @@ public class CodeGenerator extends Visitor<String> {
 //        Call your type checker here!
 //        ----------------------------
         this.slots = new HashMap<>();
+        putInHash("UTL");
         this.env = new HashMap<>();
         this.prepareOutputFolder();
         this.createFile("out");
@@ -129,6 +130,13 @@ public class CodeGenerator extends Visitor<String> {
         return "V";
     }
 
+    private void initial(){
+        addCommand(".method public <init>()V");
+        addCommand("aload_0");
+        addCommand("invokespecial java/lang/Object/<init>()V");
+        addCommand(".end method");
+    }
+
     @Override
     public String visit(Program program) {
         createFile("out.txt");
@@ -154,6 +162,7 @@ public class CodeGenerator extends Visitor<String> {
             }
             //addCommand(dec.accept(this));
         }
+        initial();
         for (var dec : program.getFunctions()){
             addCommand(dec.accept(this));
         }
@@ -570,7 +579,7 @@ public String visit(BinaryExpression binaryExpression) {
     @Override
     public String visit(Identifier identifier) {
         ILoad iloadObject = (new ILoad(putInHash(identifier.getName())));
-        return "hei\n";
+        return iloadObject.toString();
     }
 
 }
