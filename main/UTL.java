@@ -2,12 +2,13 @@ package main;
 
 import main.ast.node.Program;
 import main.compileError.CompileError;
+import main.grammar.UTLLexer;
+import main.grammar.UTLParser;
 import main.visitor.astPrinter.ASTPrinter;
 import main.visitor.nameAnalyzer.NameAnalyzer;
 import main.visitor.typeAnalyzer.TypeAnalyzer;
 import main.visitor.codeGenerator.CodeGenerator;
 import org.antlr.v4.runtime.*;
-import parsers.*;
 
 import java.io.IOException;
 

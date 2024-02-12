@@ -18,18 +18,10 @@ import main.ast.node.expression.values.IntValue;
 import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
 import main.bytecode.*;
-import main.bytecode.*;
-import java.lang.String.*;
-
-
 import java.util.ArrayList;
 
 
 import java.io.*;
-import java.util.List;
-import java.util.Map;
-
-import main.bytecode.*;
 
 
 public class CodeGenerator extends Visitor<String> {
@@ -115,7 +107,7 @@ public class CodeGenerator extends Visitor<String> {
             command = String.join("\n\t\t", command.split("\n"));
             if(command.startsWith("Label_"))
                 this.currentFile.write("\t" + command + "\n");
-            else if(command.startsWith("."))
+            else if(command.startsWith(".") || command.startsWith("\t"))
                 this.currentFile.write(command + "\n");
             else
                 this.currentFile.write("\t\t" + command + "\n");
@@ -140,13 +132,33 @@ public class CodeGenerator extends Visitor<String> {
     @Override
     public String visit(Program program) {
         createFile("out.txt");
+        addCommand(".class public UTL\n");
+        addCommand(".super java/lang/Object\n\n");
         for (var dec : program.getVars()){
             addCommand(dec.accept(this));
         }
         for (var dec : program.getFunctions()){
             addCommand(dec.accept(this));
         }
+        for (var dec : program.getStarts()){
+            addCommand(dec.accept(this));
+        }
         return null;
+    }
+
+    @Override
+    public String visit(OnStartDeclaration onStartDeclaration) {
+        addCommand(".method public OnStart(LTrade;)V\n"
+         + ".limit stack 128\n"
+        + ".limit locals 128\n\n");
+
+        for(Statement stmt : onStartDeclaration.getBody()){
+            if(stmt.accept(this) == null)
+                continue;
+            addCommand(stmt.accept(this));
+            addCommand("\n");
+        }
+        return "return\n";
     }
 
     @Override
@@ -200,18 +212,6 @@ public class CodeGenerator extends Visitor<String> {
         return res.toString();
     }
 
-//    @Override
-//    public String visit(BlockStmt blockStmt) {
-//        //todo
-//        return null;
-//    }
-
-//    @Override
-//    public String visit(ConditionalStmt conditionalStmt) {
-//        //todo
-//        return null;
-//    }
-
     @Override
     public String visit(FunctionCall functionCall) {
         Identifier functionName = functionCall.getFunctionName();
@@ -238,6 +238,7 @@ public class CodeGenerator extends Visitor<String> {
             ArrayList<Expression> args = functionCall.getArgs();
             for (Expression arg : args){
                 res.append(arg.accept(this));
+                res.append("\n");
             }
             
             res.append("invokestatic/ ... ");
@@ -341,6 +342,7 @@ public class CodeGenerator extends Visitor<String> {
             default -> {
             }
         }
+        command+="\n";
         return command;
     }
 
