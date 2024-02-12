@@ -406,7 +406,7 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(StringValue stringValue) {
         String vall = stringValue.getConstant();
 
-        String commands = "ldc      \"" +vall + "\"";
+        String commands = "ldc      \"" +vall + "\"\n";
         return commands;
     }
 
