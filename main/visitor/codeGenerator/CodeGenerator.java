@@ -214,6 +214,13 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     @Override
+    public String visit(ExpressionStmt expressionStmt){
+        if(expressionStmt.getExpression() instanceof FunctionCall)
+            return expressionStmt.getExpression().accept(this);
+        return null;
+    }
+
+    @Override
     public String visit(FunctionCall functionCall) {
         Identifier functionName = functionCall.getFunctionName();
         Type t = functionCall.getType();
@@ -377,6 +384,7 @@ public String visit(BinaryExpression binaryExpression) {
                 }
             }
         }
+        command += "\n";
         return command;
     }
 
