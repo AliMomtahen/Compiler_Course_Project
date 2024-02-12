@@ -5,14 +5,11 @@ import java.util.HashMap;
 import main.ast.node.declaration.*;
 import main.ast.node.expression.*;
 import main.ast.node.expression.operators.BinaryOperator;
-import main.ast.node.expression.values.NullValue;
+import main.ast.node.expression.values.*;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
 import main.visitor.Visitor;
-import main.ast.node.expression.values.BoolValue;
-import main.ast.node.expression.values.IntValue;
-import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
 import main.bytecode.*;
 import java.util.ArrayList;
@@ -327,7 +324,7 @@ public class CodeGenerator extends Visitor<String> {
             return command;
         }else if(functionName.getName().equals("Order")){
 
-            res.append("\tnew Order\n\tdup\n");
+            res.append("\t\tnew Order\ndup\n");
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
@@ -574,6 +571,20 @@ public String visit(BinaryExpression binaryExpression) {
 
         String commands = "ldc      " +vall + "\n";
         return commands;
+    }
+
+    @Override
+    public String visit(TradeValue tradeValue) {
+        String vall = tradeValue.getConstant();
+
+        String commands = "ldc      " +vall + "\n";
+        return commands;
+    }
+
+    @Override
+    public String visit(NullValue nullValue) {
+        AConst_null acnObj = new AConst_null();
+        return acnObj.toString();
     }
 
     @Override
