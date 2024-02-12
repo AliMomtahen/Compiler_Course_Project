@@ -7,6 +7,7 @@ import main.ast.node.expression.BinaryExpression;
 import main.ast.node.expression.Expression;
 import main.ast.node.expression.Identifier;
 import main.ast.node.expression.UnaryExpression;
+import main.ast.node.expression.operators.BinaryOperator;
 import main.ast.node.expression.values.NullValue;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
@@ -301,48 +302,81 @@ public class CodeGenerator extends Visitor<String> {
         addCommand("Label_exit : ");
         return null;
     }
-
-    @Override
-    public String visit(NullValue nullValue) {
-        AConst_null acnObj = new AConst_null();
-        return acnObj.toString();
-    }
-
-
-    @Override
-    public String visit(BinaryExpression binaryExpression) {
+public String visit(BinaryExpression binaryExpression) {
         Identifier lOperand = (Identifier)binaryExpression.getLeft();
         Identifier rOperand = (Identifier)binaryExpression.getRight();
         String command = "";
-        command += lOperand.accept(this);
-        command += "\n";
-        command += rOperand.accept(this);
-        command += "\n";
-        switch (binaryExpression.getBinaryOperator()) {
-            case PLUS -> {
-                IAdd obj = new IAdd();
-                command += obj.toString();
-            }
-            case MINUS-> {
-                INeg obj = new INeg();
-                command += obj.toString();
-            }
-            case MULT -> {
-                IMul obj = new IMul();
-                command += obj.toString();
-            }
-            case DIV -> {
-                IDiv obj = new IDiv();
-                command += obj.toString();
-            }
-            case MOD -> {
-                IRem obj = new IRem();
-                command += obj.toString();
-            }
-            default -> {
+
+        if(binaryExpression.getBinaryOperator() == BinaryOperator.AND){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += "ifeq        Label_else\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "ifeq        Label_else\n";
+        }
+        else if(binaryExpression.getBinaryOperator() == BinaryOperator.OR){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += "ifge        Label_if\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "ifeq        Label_else\n";
+        }
+        else if(binaryExpression.getBinaryOperator() == BinaryOperator.LT){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "if_icmple        Label_if\n";
+            command += "goto        Label_else\n";
+        }
+        else if(binaryExpression.getBinaryOperator() == BinaryOperator.GT){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "if_icmpge        Label_if\n";
+            command += "goto        Label_else\n";
+        }
+        else if(binaryExpression.getBinaryOperator() == BinaryOperator.EQ){
+            command += lOperand.accept(this);
+            command += "\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            command += "if_icmpeq        Label_if\n";
+            command += "goto        Label_else\n";
+        }
+        else{
+            command += lOperand.accept(this);
+            command += "\n";
+            command += rOperand.accept(this);
+            command += "\n";
+            switch (binaryExpression.getBinaryOperator()) {
+                case PLUS -> {
+                    IAdd obj = new IAdd();
+                    command += obj.toString();
+                }
+                case MINUS-> {
+                    INeg obj = new INeg();
+                    command += obj.toString();
+                }
+                case MULT -> {
+                    IMul obj = new IMul();
+                    command += obj.toString();
+                }
+                case DIV -> {
+                    IDiv obj = new IDiv();
+                    command += obj.toString();
+                }
+                case MOD -> {
+                    IRem obj = new IRem();
+                    command += obj.toString();
+                }
+                default -> {
+                }
             }
         }
-        command+="\n";
         return command;
     }
 
