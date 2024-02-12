@@ -135,7 +135,14 @@ public class CodeGenerator extends Visitor<String> {
         addCommand(".class public UTL\n");
         addCommand(".super java/lang/Object\n\n");
         for (var dec : program.getVars()){
-            addCommand(dec.accept(this));
+            addCommand(".field public " + dec.getIdentifier().getName() + " Ljava/lang/" + dec.getIdentifier().getType());
+            String index = this.putInHash(dec.getIdentifier().getName()).toString();
+            var exp = dec.getRValue();
+            if(exp != null){
+                addCommand(exp.accept(this));
+                addCommand("putfield  UTL/" + dec.getIdentifier().getName());
+            }
+            //addCommand(dec.accept(this));
         }
         for (var dec : program.getFunctions()){
             addCommand(dec.accept(this));
@@ -163,6 +170,23 @@ public class CodeGenerator extends Visitor<String> {
         addCommand("return\n");
         return ".end method\n";
     }
+
+//    @Override
+//    public String visit(OnInitDeclaration onInitDeclaration){
+//        addCommand("\n");
+//        addCommand(".method public OnInit(LTrade;)V\n"
+//                + ".limit stack 128\n"
+//                + ".limit locals 128\n\n");
+//
+//        for(Statement stmt : onInitDeclaration.getBody()){
+//            if(stmt.accept(this) == null)
+//                continue;
+//            addCommand(stmt.accept(this));
+//            addCommand("\n");
+//        }
+//        addCommand("return\n");
+//        return ".end method\n";
+//    }
 
     @Override
     public String visit(OnStartDeclaration onStartDeclaration) {
@@ -288,20 +312,20 @@ public class CodeGenerator extends Visitor<String> {
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
-            res.append(new Invoke("Order/<init>", "(IFFI)V", "special"));
+            res.append(new Invoke("Order/<init>", "(Ljava/lang/String;III)V\n", "special"));
             return res.toString();
         }
         else if(functionName.getName().equals( "GetCandle")) {
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
-            res.append("\ninvokestatic Prog/getCandle(Ljava/lang/Integer)LCandle\n");
+            res.append("\ninvokestatic Prog/getCandle(Ljava/lang/Integer;)LCandle\n");
         }
         else if(functionName.getName().equals( "Observe")) {
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
-            res.append("\ninvokestatic Prog/Observe(Ljava/lang/Integer);Ltrade\n");
+            res.append("\ninvokestatic Prog/Observe(Ljava/lang/Integer;)Ltrade\n");
         }
         else if(functionName.getName().equals( "Terminate")) {
             for (var args : functionCall.getArgs()){
