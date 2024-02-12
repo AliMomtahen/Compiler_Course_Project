@@ -14,6 +14,7 @@ public class BinaryExpression extends Expression {
         this.left = left;
         this.right = right;
         this.binaryOperator = binaryOperator;
+
     }
 
     public Expression getLeft() {

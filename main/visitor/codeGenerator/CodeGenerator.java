@@ -38,8 +38,7 @@ public class CodeGenerator extends Visitor<String> {
 //        Uncomment below line to initialize your typechecker
         this.expressionTypeChecker = new TypeChecker(new ArrayList());
 
-//        Call your type checker here!
-//        ----------------------------
+
         this.slots = new HashMap<>();
         putInHash("UTL");
         this.env = new HashMap<>();
@@ -139,6 +138,7 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(Program program) {
+        var t = program.accept(this.expressionTypeChecker);
         createFile("out.txt");
         addCommand(".class public UTL\n");
         addCommand(".super java/lang/Object\n\n");
@@ -308,6 +308,7 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(FunctionCall functionCall) {
+
         Identifier functionName = functionCall.getFunctionName();
         Type t = functionCall.getType();
         var res = new StringBuilder();
