@@ -104,9 +104,6 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     private void addCommand(String command) {
-        if(command == null){
-            return;
-        }
         try {
             command = String.join("\n\t\t", command.split("\n"));
             if(command.startsWith("Label_"))
@@ -147,11 +144,30 @@ public class CodeGenerator extends Visitor<String> {
         for (var dec : program.getStarts()){
             addCommand(dec.accept(this));
         }
+        addCommand(program.getMain().accept(this));
         return null;
     }
 
     @Override
+    public String visit(MainDeclaration mainDeclaration) {
+        addCommand("\n");
+        addCommand(".method public Main(LTrade;)V\n"
+                + ".limit stack 128\n"
+                + ".limit locals 128\n\n");
+
+        for(Statement stmt : mainDeclaration.getBody()){
+            if(stmt.accept(this) == null)
+                continue;
+            addCommand(stmt.accept(this));
+            addCommand("\n");
+        }
+        addCommand("return\n");
+        return ".end method\n";
+    }
+
+    @Override
     public String visit(OnStartDeclaration onStartDeclaration) {
+        addCommand("\n");
         addCommand(".method public OnStart(LTrade;)V\n"
          + ".limit stack 128\n"
         + ".limit locals 128\n\n");
@@ -162,7 +178,8 @@ public class CodeGenerator extends Visitor<String> {
             addCommand(stmt.accept(this));
             addCommand("\n");
         }
-        return "return\n";
+        addCommand("return\n");
+        return ".end method\n";
     }
 
     @Override
@@ -214,6 +231,15 @@ public class CodeGenerator extends Visitor<String> {
             res.append("astore      " + index + "\n");
         }
         return res.toString();
+    }
+
+    @Override
+    public String visit(ExpressionStmt expressionStmt){
+        Expression exp = expressionStmt.getExpression();
+        if(     exp instanceof FunctionCall ||
+                exp instanceof UnaryExpression )
+            return expressionStmt.getExpression().accept(this);
+        return null;
     }
 
     @Override
@@ -306,55 +332,43 @@ public class CodeGenerator extends Visitor<String> {
         return null;
     }
 public String visit(BinaryExpression binaryExpression) {
-        Expression   lOperand = binaryExpression.getLeft();
+        Expression lOperand = binaryExpression.getLeft();
         Expression rOperand = binaryExpression.getRight();
         String command = "";
 
         if(binaryExpression.getBinaryOperator() == BinaryOperator.AND){
             command += lOperand.accept(this);
-            command += "\n";
             command += "ifeq        Label_else\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "ifeq        Label_else\n";
         }
         else if(binaryExpression.getBinaryOperator() == BinaryOperator.OR){
             command += lOperand.accept(this);
-            command += "\n";
             command += "ifge        Label_if\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "ifeq        Label_else\n";
         }
         else if(binaryExpression.getBinaryOperator() == BinaryOperator.LT){
             command += lOperand.accept(this);
-            command += "\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "if_icmple        Label_if\n";
             command += "goto        Label_else\n";
         }
         else if(binaryExpression.getBinaryOperator() == BinaryOperator.GT){
             command += lOperand.accept(this);
-            command += "\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "if_icmpge        Label_if\n";
             command += "goto        Label_else\n";
         }
         else if(binaryExpression.getBinaryOperator() == BinaryOperator.EQ){
             command += lOperand.accept(this);
-            command += "\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "if_icmpeq        Label_if\n";
             command += "goto        Label_else\n";
         }
         else{
             command += lOperand.accept(this);
-            command += "\n";
             command += rOperand.accept(this);
-            command += "\n";
             switch (binaryExpression.getBinaryOperator()) {
                 case PLUS -> {
                     IAdd obj = new IAdd();
@@ -380,21 +394,24 @@ public String visit(BinaryExpression binaryExpression) {
                 }
             }
         }
+        command += "\n";
         return command;
     }
 
     @Override
     public String visit(UnaryExpression unaryExpression) {
-        Identifier operand = (Identifier)unaryExpression.getOperand();
-        String command = unaryExpression.getOperand().accept(this);
+        Expression operand = unaryExpression.getOperand();
+        String command = "";
         int index = putInHash(operand.getName());
-        Type t = operand.accept(expressionTypeChecker);
         switch (unaryExpression.getUnaryOperator()) {
             case INC -> {
-                command += "i" + "inc\t" + index + ", " + "1\n";
+                command += operand.accept(this);
+                String s = "i" + "inc\t" + index + ", " + "1\n";
+                command += s;
             }
 
             case DEC -> {
+                command += operand.accept(this);
                 command += "i" + "inc\t" + index + ", " + "-1\n";
             }
 
@@ -405,7 +422,6 @@ public String visit(BinaryExpression binaryExpression) {
 
             case NOT -> {
                 command += operand.accept(this);
-                command += "\n";
                 IConst iconstObject = new IConst(1);
                 command += iconstObject.toString();
                 command += "\n";
@@ -414,7 +430,15 @@ public String visit(BinaryExpression binaryExpression) {
                 command += "\n";
             }
 
-            case BIT_NOT -> {}
+            case BIT_NOT -> {
+                command += operand.accept(this);
+                IConst iconstObject = new IConst(-1);
+                command += iconstObject.toString();
+                command += "\n";
+                IXor xorObject = new IXor();
+                command += xorObject.toString();
+                command += "\n";
+            }
 
         }
         return command;
