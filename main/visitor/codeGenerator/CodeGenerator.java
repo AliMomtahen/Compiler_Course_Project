@@ -135,7 +135,16 @@ public class CodeGenerator extends Visitor<String> {
         addCommand(".class public UTL\n");
         addCommand(".super java/lang/Object\n\n");
         for (var dec : program.getVars()){
-            addCommand(dec.accept(this));
+            String type = "";
+
+            if(dec.getType() instanceof IntType)
+                type = "Integer";
+            else if(dec.getType() instanceof FloatType)
+                type = "Float";
+            else if(dec.getType() instanceof StringType)
+                type = "String";
+            addCommand(".field public "+ dec.getIdentifier().getName() + " "+"Ljava/lang/"+
+                    type+"\n");
         }
         for (var dec : program.getFunctions()){
             addCommand(dec.accept(this));
@@ -536,7 +545,7 @@ public String visit(BinaryExpression binaryExpression) {
     @Override
     public String visit(Identifier identifier) {
         ILoad iloadObject = (new ILoad(putInHash(identifier.getName())));
-        return iloadObject.toString();
+        return "hei\n";
     }
 
 }
