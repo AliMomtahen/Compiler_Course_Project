@@ -563,7 +563,7 @@ public String visit(BinaryExpression binaryExpression) {
     public String visit(StringValue stringValue) {
         String vall = stringValue.getConstant();
 
-        String commands = "ldc      \"" +vall + "\"\n";
+        String commands = "ldc      " +vall + "\n";
         return commands;
     }
 
