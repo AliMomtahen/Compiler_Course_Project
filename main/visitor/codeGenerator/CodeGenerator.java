@@ -144,11 +144,30 @@ public class CodeGenerator extends Visitor<String> {
         for (var dec : program.getStarts()){
             addCommand(dec.accept(this));
         }
+        addCommand(program.getMain().accept(this));
         return null;
     }
 
     @Override
+    public String visit(MainDeclaration mainDeclaration) {
+        addCommand("\n");
+        addCommand(".method public Main(LTrade;)V\n"
+                + ".limit stack 128\n"
+                + ".limit locals 128\n\n");
+
+        for(Statement stmt : mainDeclaration.getBody()){
+            if(stmt.accept(this) == null)
+                continue;
+            addCommand(stmt.accept(this));
+            addCommand("\n");
+        }
+        addCommand("return\n");
+        return ".end method\n";
+    }
+
+    @Override
     public String visit(OnStartDeclaration onStartDeclaration) {
+        addCommand("\n");
         addCommand(".method public OnStart(LTrade;)V\n"
          + ".limit stack 128\n"
         + ".limit locals 128\n\n");
@@ -159,7 +178,8 @@ public class CodeGenerator extends Visitor<String> {
             addCommand(stmt.accept(this));
             addCommand("\n");
         }
-        return "return\n";
+        addCommand("return\n");
+        return ".end method\n";
     }
 
     @Override
