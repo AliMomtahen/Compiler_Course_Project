@@ -104,6 +104,9 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     private void addCommand(String command) {
+        if(command == null){
+            return;
+        }
         try {
             command = String.join("\n\t\t", command.split("\n"));
             if(command.startsWith("Label_"))
@@ -294,42 +297,44 @@ public class CodeGenerator extends Visitor<String> {
             command += ireturnObj.toString();
         }
 
-        addCommand(command);
-        return null;
+
+        return command;
     }
 
     @Override
     public String visit(WhileStmt whileStmt){
+        var res = new StringBuilder();
         Expression condition = whileStmt.getCondition();
-        addCommand("Label_start : ");
-        addCommand(condition.accept(this));
+        res.append("Label_start : ");
+        res.append(condition.accept(this));
 
 
-        addCommand("Label_if : ");
+        res.append("Label_if : ");
         for(Statement stmt : whileStmt.getBody()){
-            addCommand(stmt.accept(this));
+            res.append(stmt.accept(this));
         }
-        addCommand("goto\t\t" + "Label_start");
-        addCommand("Label_else : ");
-        return null;
+        res.append("goto\t\t" + "Label_start");
+        res.append("Label_else : ");
+        return res.toString();
     }
 
     @Override
     public String visit(IfElseStmt ifElseStmt) {
+        var res = new StringBuilder();
         Expression condition = ifElseStmt.getCondition();
-        addCommand(condition.accept(this));
+        res.append(condition.accept(this));
 
-        addCommand("Label_if : ");
+        res.append("Label_if : ");
         for(Statement stmt : ifElseStmt.getThenBody()){
-            addCommand(stmt.accept(this));
+            res.append(stmt.accept(this));
         }
-        addCommand("goto\t\t" + "Label_exit");
-        addCommand("Label_else : ");
+        res.append("goto\t\t" + "Label_exit");
+        res.append("Label_else : ");
         for(Statement stmt : ifElseStmt.getElseBody()){
-            addCommand(stmt.accept(this));
+            res.append(stmt.accept(this));
         }
-        addCommand("Label_exit : ");
-        return null;
+        res.append("Label_exit : ");
+        return res.toString();
     }
 public String visit(BinaryExpression binaryExpression) {
         Expression lOperand = binaryExpression.getLeft();
