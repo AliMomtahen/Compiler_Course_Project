@@ -28,6 +28,7 @@ public class CodeGenerator extends Visitor<String> {
     private FunctionDeclaration currentMethod;
 
     private HashMap<String , JasminMethod> env;
+    private ArrayList<HashMap<Integer , Type>> simt;
 
     public CodeGenerator() {
 //        this.classHierarchy = classHierarchy;
@@ -41,6 +42,7 @@ public class CodeGenerator extends Visitor<String> {
         this.env = new HashMap<>();
         this.prepareOutputFolder();
         this.createFile("out");
+        this.simt = new ArrayList<>();
 
     }
     private Integer putInHash(String var){
@@ -136,6 +138,7 @@ public class CodeGenerator extends Visitor<String> {
     @Override
     public String visit(Program program) {
         var t = program.accept(this.expressionTypeChecker);
+        simt.add(new HashMap<>());
         createFile("out.txt");
         addCommand(".class public UTL\n");
         addCommand(".super java/lang/Object\n\n");
@@ -237,6 +240,7 @@ public class CodeGenerator extends Visitor<String> {
         Type vartype = varDeclaration.getType();
         Expression assignVal = varDeclaration.getRValue();
         Integer slot_ind = this.putInHash(var_name);
+        simt.getLast().put(slot_ind , vartype);
         if(assignVal != null){
             res.append(assignVal.accept(this));// must first load val then
             //addCommand();// store it to slot_ind
@@ -590,8 +594,9 @@ public String visit(BinaryExpression binaryExpression) {
 
     @Override
     public String visit(Identifier identifier) {
-        Type type = identifier.getType();
+
         int index = (putInHash(identifier.getName()));
+        Type type = simt.getLast().get(index);
         if(type instanceof FloatType){
             return "\t" + (index < 4 ? "fload_" + index : "fload " + index )+ "\n";
         }
