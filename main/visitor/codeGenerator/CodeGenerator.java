@@ -104,9 +104,7 @@ public class CodeGenerator extends Visitor<String> {
         }
         try {
             command = String.join("\n\t\t", command.split("\n"));
-            if(command.startsWith("Label_"))
-                this.currentFile.write("\t" + command + "\n");
-            else if(command.startsWith(".") || command.startsWith("\t"))
+            if(command.startsWith(".") || command.startsWith("\t"))
                 this.currentFile.write(command + "\n");
             else
                 this.currentFile.write("\t\t" + command + "\n");
@@ -440,6 +438,8 @@ public String visit(BinaryExpression binaryExpression) {
         Expression lOperand = binaryExpression.getLeft();
         Expression rOperand = binaryExpression.getRight();
         String command = "";
+        int index = (putInHash(lOperand.getName()));
+        Type type = simt.getLast().get(index);
 
         if(binaryExpression.getBinaryOperator() == BinaryOperator.AND){
             command += lOperand.accept(this);
@@ -476,19 +476,19 @@ public String visit(BinaryExpression binaryExpression) {
             command += rOperand.accept(this);
             switch (binaryExpression.getBinaryOperator()) {
                 case PLUS -> {
-                    IAdd obj = new IAdd();
+                    Add obj = new Add(type);
                     command += obj.toString();
                 }
                 case MINUS-> {
-                    INeg obj = new INeg();
+                    Neg obj = new Neg(type);
                     command += obj.toString();
                 }
                 case MULT -> {
-                    IMul obj = new IMul();
+                    Mul obj = new Mul(type);
                     command += obj.toString();
                 }
                 case DIV -> {
-                    IDiv obj = new IDiv();
+                    Div obj = new Div(type);
                     command += obj.toString();
                 }
                 case MOD -> {
@@ -599,7 +599,7 @@ public String visit(BinaryExpression binaryExpression) {
         int index = (putInHash(identifier.getName()));
         Type type = simt.getLast().get(index);
         if(type instanceof FloatType){
-            return "\t" + (index < 4 ? "fload_" + index : "fload " + index )+ "\n";
+            return (index < 4 ? "fload_" + index : "fload " + index )+ "\n";
         }
         else{
             ILoad iloadObject = (new ILoad(index));
