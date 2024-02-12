@@ -198,7 +198,7 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(VarDeclaration varDeclaration) {
         var res = new StringBuilder();
         String var_name = varDeclaration.getIdentifier().getName();
-        Type vartype = varDeclaration.getIdentifier().getType();
+        Type vartype = varDeclaration.getType();
         Expression assignVal = varDeclaration.getRValue();
         Integer slot_ind = this.putInHash(var_name);
         if(assignVal != null){
@@ -207,8 +207,11 @@ public class CodeGenerator extends Visitor<String> {
             if(vartype instanceof BoolType || vartype instanceof IntType || vartype instanceof StringType){
                 res.append("istore      " + slot_ind + "\n");
             }
+            else if(vartype instanceof FloatType){
+                res.append("fstore      " + slot_ind + "\n");
+            }
             else{
-                res.append("astore      " + slot_ind + "\n");
+                res.append(vartype.toString() + "      " + slot_ind + "\n");
             }
         }
 
@@ -229,6 +232,9 @@ public class CodeGenerator extends Visitor<String> {
         Type idt = iden.getType();
         if(idt instanceof BoolType || idt instanceof IntType || idt instanceof StringType){
             res.append("istore      " + index + "\n");
+        }
+        else if(idt instanceof FloatType){
+            res.append("fstore      " + index + "\n");
         }
         else{
             res.append("astore      " + index + "\n");
@@ -266,7 +272,6 @@ public class CodeGenerator extends Visitor<String> {
         }
         
         else{
-
             StringBuilder res = new StringBuilder();
             ArrayList<Expression> args = functionCall.getArgs();
             for (Expression arg : args){
@@ -278,8 +283,8 @@ public class CodeGenerator extends Visitor<String> {
             
             return res.toString();
         }
-    }
 
+    }
 
     @Override
     public String visit(ReturnStmt returnStmt) {
@@ -296,8 +301,6 @@ public class CodeGenerator extends Visitor<String> {
             IReturn ireturnObj = new IReturn();
             command += ireturnObj.toString();
         }
-
-
         return command;
     }
 
@@ -307,7 +310,6 @@ public class CodeGenerator extends Visitor<String> {
         Expression condition = whileStmt.getCondition();
         res.append("Label_start : ");
         res.append(condition.accept(this));
-
 
         res.append("Label_if : ");
         for(Statement stmt : whileStmt.getBody()){
@@ -336,6 +338,7 @@ public class CodeGenerator extends Visitor<String> {
         res.append("Label_exit : ");
         return res.toString();
     }
+
 public String visit(BinaryExpression binaryExpression) {
         Expression lOperand = binaryExpression.getLeft();
         Expression rOperand = binaryExpression.getRight();
