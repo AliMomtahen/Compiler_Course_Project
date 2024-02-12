@@ -3,17 +3,13 @@ package main.visitor.codeGenerator;
 import main.ast.node.Program;
 import java.util.HashMap;
 import main.ast.node.declaration.*;
-import main.ast.node.expression.BinaryExpression;
-import main.ast.node.expression.Expression;
-import main.ast.node.expression.Identifier;
-import main.ast.node.expression.UnaryExpression;
+import main.ast.node.expression.*;
 import main.ast.node.expression.operators.BinaryOperator;
 import main.ast.node.expression.values.NullValue;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
 import main.visitor.Visitor;
-import main.ast.node.expression.FunctionCall;
 import main.ast.node.expression.values.BoolValue;
 import main.ast.node.expression.values.IntValue;
 import main.ast.node.expression.values.StringValue;
@@ -34,7 +30,7 @@ public class CodeGenerator extends Visitor<String> {
     private FileWriter currentFile;
     private FunctionDeclaration currentMethod;
 
-    private HashMap<String , String> env;
+    private HashMap<String , JasminMethod> env;
 
     public CodeGenerator() {
 //        this.classHierarchy = classHierarchy;
@@ -44,8 +40,8 @@ public class CodeGenerator extends Visitor<String> {
 
 //        Call your type checker here!
 //        ----------------------------
-        this.slots = HashMap.newHashMap(128);
-        this.env = HashMap.newHashMap(128);
+        this.slots = new HashMap<>();
+        this.env = new HashMap<>();
         this.prepareOutputFolder();
         this.createFile("out");
 
@@ -190,7 +186,7 @@ public class CodeGenerator extends Visitor<String> {
         var res = new JasminMethod(functionDeclaration.getName().getName(), functionDeclaration.getReturnType(),
                 functionDeclaration.getArgs().stream().map(VarDeclaration::getType).toList(),
                 functionDeclaration.getBody().stream().map(s->s.accept(this)).toList());
-        env.put(functionDeclaration.getName().getName(), res.toString());
+        env.put(functionDeclaration.getName().getName(), res);
         return res.toString();
     }
 
@@ -211,6 +207,22 @@ public class CodeGenerator extends Visitor<String> {
                 res.append("astore      " + slot_ind + "\n");
             }
         }
+
+        return res.toString();
+    }
+
+
+    @Override
+    public String visit(VarAccess varAccess){
+        var res = new StringBuilder();
+        var c = varAccess.getInstance();
+        var v = varAccess.getVariable();
+
+        var nam =  c.getName();
+        var field = v.getName();
+        var ind = putInHash(nam);
+        res.append("aload   " + ind.toString() + "\n");
+        res.append("getfield    " + field + "\n");
 
         return res.toString();
     }
@@ -249,7 +261,8 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(FunctionCall functionCall) {
         Identifier functionName = functionCall.getFunctionName();
         Type t = functionCall.getType();
-        if(functionName.getName() == "print"){
+        var res = new StringBuilder();
+        if(functionName.getName() == "print" || functionName.getName() == "Print"){
             String command = "";
             GetStatic staticObj = new GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;");
             
@@ -263,21 +276,57 @@ public class CodeGenerator extends Visitor<String> {
             }
             command += invVirObj.toString();
             return command;
+        }else if(functionName.getName() == "Order"){
+
+            res.append("\tnew Order\n\tdup\n");
+            for (var args : functionCall.getArgs()){
+                res.append(args.accept(this));
+            }
+            res.append(new Invoke("Order/<init>", "(IFFI)V", "special"));
+            return res.toString();
         }
-        
+        else if(functionName.getName() ==  "GetCandle") {
+            for (var args : functionCall.getArgs()){
+                res.append(args.accept(this));
+            }
+            res.append("\ninvokestatic Prog/getCandle(Ljava/lang/Integer)LCandle\n");
+        }
+        else if(functionName.getName() ==  "Observe") {
+            for (var args : functionCall.getArgs()){
+                res.append(args.accept(this));
+            }
+            res.append("\ninvokestatic Prog/Observe(Ljava/lang/Integer);Ltrade\n");
+        }
+        else if(functionName.getName() ==  "Terminate") {
+            for (var args : functionCall.getArgs()){
+                res.append(args.accept(this));
+            }
+            res.append("\ninvokestatic Prog/Terminate()V\n");
+        }
+        else if(functionName.getName() ==  "Connect"){
+            for (var args : functionCall.getArgs()){
+                res.append(args.accept(this));
+            }
+
+            res.append("\ninvokestatic Prog/Connect(Ljava/lang/String;Ljava/lang/String;)V\n");
+        }
         else{
 
-            StringBuilder res = new StringBuilder();
+
             ArrayList<Expression> args = functionCall.getArgs();
             for (Expression arg : args){
                 res.append(arg.accept(this));
                 res.append("\n");
             }
-            
-            res.append("invokestatic/ ... ");
+
+
+            var fc = new InvokeStatic( "Main" , functionName.getName()
+                    , env.get(functionName.getName()).getSignature());
+            res.append(fc.toString());
             
             return res.toString();
         }
+        return res.toString();
     }
 
 
