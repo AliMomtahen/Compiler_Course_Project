@@ -7,6 +7,7 @@ import main.ast.node.expression.BinaryExpression;
 import main.ast.node.expression.Expression;
 import main.ast.node.expression.Identifier;
 import main.ast.node.expression.UnaryExpression;
+import main.ast.node.expression.values.NullValue;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
@@ -16,6 +17,7 @@ import main.ast.node.expression.values.BoolValue;
 import main.ast.node.expression.values.IntValue;
 import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
+import main.bytecode.*;
 import main.bytecode.*;
 import java.lang.String.*;
 
@@ -242,30 +244,68 @@ public class CodeGenerator extends Visitor<String> {
             return res.toString();
         }
     }
-    
+
 
     @Override
     public String visit(ReturnStmt returnStmt) {
-        StringBuilder res = new StringBuilder();
         Type type = returnStmt.getReturnedExpr().accept(expressionTypeChecker);
+
+        String command = "";
         if(type instanceof NullType) {
-            res.append("return");
+            Return returnObj = new Return();
+            command += returnObj.toString();
         }
         else {
-            var expr = returnStmt.getReturnedExpr();
-            res.append(expr.accept(this));
-            res.append("ireturn\n");
-               
+            command += returnStmt.getReturnedExpr().accept(this);
+            command += "\n";
+            IReturn ireturnObj = new IReturn();
+            command += ireturnObj.toString();
         }
-        return res.toString();
+
+        addCommand(command);
+        return null;
     }
 
     @Override
-    public String visit(main.ast.node.expression.values.NullValue nullValue) {
-        String commands = "";
-        //todo
-        return commands;
+    public String visit(WhileStmt whileStmt){
+        Expression condition = whileStmt.getCondition();
+        addCommand("Label_start : ");
+        addCommand(condition.accept(this));
+
+
+        addCommand("Label_if : ");
+        for(Statement stmt : whileStmt.getBody()){
+            addCommand(stmt.accept(this));
+        }
+        addCommand("goto\t\t" + "Label_start");
+        addCommand("Label_else : ");
+        return null;
     }
+
+    @Override
+    public String visit(IfElseStmt ifElseStmt) {
+        Expression condition = ifElseStmt.getCondition();
+        addCommand(condition.accept(this));
+
+        addCommand("Label_if : ");
+        for(Statement stmt : ifElseStmt.getThenBody()){
+            addCommand(stmt.accept(this));
+        }
+        addCommand("goto\t\t" + "Label_exit");
+        addCommand("Label_else : ");
+        for(Statement stmt : ifElseStmt.getElseBody()){
+            addCommand(stmt.accept(this));
+        }
+        addCommand("Label_exit : ");
+        return null;
+    }
+
+    @Override
+    public String visit(NullValue nullValue) {
+        AConst_null acnObj = new AConst_null();
+        return acnObj.toString();
+    }
+
 
     @Override
     public String visit(BinaryExpression binaryExpression) {
