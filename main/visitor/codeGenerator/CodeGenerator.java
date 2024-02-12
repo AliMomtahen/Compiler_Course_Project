@@ -268,7 +268,7 @@ public class CodeGenerator extends Visitor<String> {
         Identifier functionName = functionCall.getFunctionName();
         Type t = functionCall.getType();
         var res = new StringBuilder();
-        if(functionName.getName() == "print" || functionName.getName() == "Print"){
+        if(functionName.getName().equals("print") || functionName.getName().equals("Print")){
             String command = "";
             GetStatic staticObj = new GetStatic("java/lang/System", "out", "Ljava/io/PrintStream;");
             
@@ -282,7 +282,7 @@ public class CodeGenerator extends Visitor<String> {
             }
             command += invVirObj.toString();
             return command;
-        }else if(functionName.getName() == "Order"){
+        }else if(functionName.getName().equals("Order")){
 
             res.append("\tnew Order\n\tdup\n");
             for (var args : functionCall.getArgs()){
@@ -291,25 +291,25 @@ public class CodeGenerator extends Visitor<String> {
             res.append(new Invoke("Order/<init>", "(IFFI)V", "special"));
             return res.toString();
         }
-        else if(functionName.getName() ==  "GetCandle") {
+        else if(functionName.getName().equals( "GetCandle")) {
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
             res.append("\ninvokestatic Prog/getCandle(Ljava/lang/Integer)LCandle\n");
         }
-        else if(functionName.getName() ==  "Observe") {
+        else if(functionName.getName().equals( "Observe")) {
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
             res.append("\ninvokestatic Prog/Observe(Ljava/lang/Integer);Ltrade\n");
         }
-        else if(functionName.getName() ==  "Terminate") {
+        else if(functionName.getName().equals( "Terminate")) {
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
             res.append("\ninvokestatic Prog/Terminate()V\n");
         }
-        else if(functionName.getName() ==  "Connect"){
+        else if(functionName.getName().equals( "Connect")){
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
