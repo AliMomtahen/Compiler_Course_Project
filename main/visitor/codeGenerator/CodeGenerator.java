@@ -215,7 +215,9 @@ public class CodeGenerator extends Visitor<String> {
 
     @Override
     public String visit(ExpressionStmt expressionStmt){
-        if(expressionStmt.getExpression() instanceof FunctionCall)
+        Expression exp = expressionStmt.getExpression();
+        if(     exp instanceof FunctionCall ||
+                exp instanceof UnaryExpression )
             return expressionStmt.getExpression().accept(this);
         return null;
     }
@@ -316,49 +318,37 @@ public String visit(BinaryExpression binaryExpression) {
 
         if(binaryExpression.getBinaryOperator() == BinaryOperator.AND){
             command += lOperand.accept(this);
-            command += "\n";
             command += "ifeq        Label_else\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "ifeq        Label_else\n";
         }
         else if(binaryExpression.getBinaryOperator() == BinaryOperator.OR){
             command += lOperand.accept(this);
-            command += "\n";
             command += "ifge        Label_if\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "ifeq        Label_else\n";
         }
         else if(binaryExpression.getBinaryOperator() == BinaryOperator.LT){
             command += lOperand.accept(this);
-            command += "\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "if_icmple        Label_if\n";
             command += "goto        Label_else\n";
         }
         else if(binaryExpression.getBinaryOperator() == BinaryOperator.GT){
             command += lOperand.accept(this);
-            command += "\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "if_icmpge        Label_if\n";
             command += "goto        Label_else\n";
         }
         else if(binaryExpression.getBinaryOperator() == BinaryOperator.EQ){
             command += lOperand.accept(this);
-            command += "\n";
             command += rOperand.accept(this);
-            command += "\n";
             command += "if_icmpeq        Label_if\n";
             command += "goto        Label_else\n";
         }
         else{
             command += lOperand.accept(this);
-            command += "\n";
             command += rOperand.accept(this);
-            command += "\n";
             switch (binaryExpression.getBinaryOperator()) {
                 case PLUS -> {
                     IAdd obj = new IAdd();
@@ -393,7 +383,6 @@ public String visit(BinaryExpression binaryExpression) {
         Identifier operand = (Identifier)unaryExpression.getOperand();
         String command = unaryExpression.getOperand().accept(this);
         int index = putInHash(operand.getName());
-        Type t = operand.accept(expressionTypeChecker);
         switch (unaryExpression.getUnaryOperator()) {
             case INC -> {
                 command += "i" + "inc\t" + index + ", " + "1\n";
