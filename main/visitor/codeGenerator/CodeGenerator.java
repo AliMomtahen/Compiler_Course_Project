@@ -312,8 +312,8 @@ public class CodeGenerator extends Visitor<String> {
         return null;
     }
 public String visit(BinaryExpression binaryExpression) {
-        Identifier lOperand = (Identifier)binaryExpression.getLeft();
-        Identifier rOperand = (Identifier)binaryExpression.getRight();
+        Expression lOperand = binaryExpression.getLeft();
+        Expression rOperand = binaryExpression.getRight();
         String command = "";
 
         if(binaryExpression.getBinaryOperator() == BinaryOperator.AND){
@@ -380,15 +380,18 @@ public String visit(BinaryExpression binaryExpression) {
 
     @Override
     public String visit(UnaryExpression unaryExpression) {
-        Identifier operand = (Identifier)unaryExpression.getOperand();
-        String command = unaryExpression.getOperand().accept(this);
+        Expression operand = unaryExpression.getOperand();
+        String command = "";
         int index = putInHash(operand.getName());
         switch (unaryExpression.getUnaryOperator()) {
             case INC -> {
-                command += "i" + "inc\t" + index + ", " + "1\n";
+                command += operand.accept(this);
+                String s = "i" + "inc\t" + index + ", " + "1\n";
+                command += s;
             }
 
             case DEC -> {
+                command += operand.accept(this);
                 command += "i" + "inc\t" + index + ", " + "-1\n";
             }
 
@@ -399,7 +402,6 @@ public String visit(BinaryExpression binaryExpression) {
 
             case NOT -> {
                 command += operand.accept(this);
-                command += "\n";
                 IConst iconstObject = new IConst(1);
                 command += iconstObject.toString();
                 command += "\n";
@@ -408,7 +410,15 @@ public String visit(BinaryExpression binaryExpression) {
                 command += "\n";
             }
 
-            case BIT_NOT -> {}
+            case BIT_NOT -> {
+                command += operand.accept(this);
+                IConst iconstObject = new IConst(-1);
+                command += iconstObject.toString();
+                command += "\n";
+                IXor xorObject = new IXor();
+                command += xorObject.toString();
+                command += "\n";
+            }
 
         }
         return command;
