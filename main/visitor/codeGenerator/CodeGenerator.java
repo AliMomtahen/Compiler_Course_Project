@@ -5,14 +5,11 @@ import java.util.HashMap;
 import main.ast.node.declaration.*;
 import main.ast.node.expression.*;
 import main.ast.node.expression.operators.BinaryOperator;
-import main.ast.node.expression.values.NullValue;
+import main.ast.node.expression.values.*;
 import main.ast.node.statement.*;
 import main.ast.type.Type;
 import main.ast.type.primitiveType.*;
 import main.visitor.Visitor;
-import main.ast.node.expression.values.BoolValue;
-import main.ast.node.expression.values.IntValue;
-import main.ast.node.expression.values.StringValue;
 import main.visitor.typeAnalyzer.TypeChecker;
 import main.bytecode.*;
 import java.util.ArrayList;
@@ -328,7 +325,7 @@ public class CodeGenerator extends Visitor<String> {
             return command;
         }else if(functionName.getName().equals("Order")){
 
-            res.append("\tnew Order\n\tdup\n");
+            res.append("\t\tnew Order\ndup\n");
             for (var args : functionCall.getArgs()){
                 res.append(args.accept(this));
             }
@@ -403,15 +400,15 @@ public class CodeGenerator extends Visitor<String> {
     public String visit(WhileStmt whileStmt){
         var res = new StringBuilder();
         Expression condition = whileStmt.getCondition();
-        res.append("Label_start : ");
+        res.append("Label_start : \n");
         res.append(condition.accept(this));
 
-        res.append("Label_if : ");
+        res.append("Label_if : \n");
         for(Statement stmt : whileStmt.getBody()){
             res.append(stmt.accept(this));
         }
-        res.append("goto\t\t" + "Label_start");
-        res.append("Label_else : ");
+        res.append("goto\t\t" + "Label_start\n");
+        res.append("Label_else : \n");
         return res.toString();
     }
 
@@ -421,16 +418,16 @@ public class CodeGenerator extends Visitor<String> {
         Expression condition = ifElseStmt.getCondition();
         res.append(condition.accept(this));
 
-        res.append("Label_if : ");
+        res.append("Label_if : \n");
         for(Statement stmt : ifElseStmt.getThenBody()){
             res.append(stmt.accept(this));
         }
-        res.append("goto\t\t" + "Label_exit");
-        res.append("Label_else : ");
+        res.append("goto\t\t" + "Label_exit\n");
+        res.append("Label_else : \n");
         for(Statement stmt : ifElseStmt.getElseBody()){
             res.append(stmt.accept(this));
         }
-        res.append("Label_exit : ");
+        res.append("Label_exit : \n");
         return res.toString();
     }
 
@@ -578,9 +575,31 @@ public String visit(BinaryExpression binaryExpression) {
     }
 
     @Override
+    public String visit(TradeValue tradeValue) {
+        String vall = tradeValue.getConstant();
+
+        String commands = "ldc      " +vall + "\n";
+        return commands;
+    }
+
+    @Override
+    public String visit(NullValue nullValue) {
+        AConst_null acnObj = new AConst_null();
+        return acnObj.toString();
+    }
+
+    @Override
     public String visit(Identifier identifier) {
-        ILoad iloadObject = (new ILoad(putInHash(identifier.getName())));
-        return iloadObject.toString();
+        Type type = identifier.accept(this.expressionTypeChecker);
+        int index = (putInHash(identifier.getName()));
+        if(type instanceof FloatType){
+            return "\t" + (index < 4 ? "fload_" + index : "fload " + index )+ "\n";
+        }
+        else{
+            ILoad iloadObject = (new ILoad(index));
+            return iloadObject.toString();
+        }
+
     }
 
 }
