@@ -1,5 +1,6 @@
 package main.bytecode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import main.ast.type.primitiveType.BoolType;
@@ -24,9 +25,9 @@ public class JasminMethod extends Bytecode{
     public JasminMethod(String name, Type returnType, List<Type> args, List<String> body) {
         this.name = name;
         this.returnType = makeTypeSignature(returnType);
-
+        this.args = new ArrayList<>();
         for(Type s : args){
-            this.args.add(makeTypeSignature(s));
+            this.args.add(s.getStrType());
         }
         this.body = body;
     }

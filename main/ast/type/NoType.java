@@ -5,4 +5,8 @@ public class NoType extends Type {
     public String toString() {
         return "noType";
     }
+    public String getStrType(){
+        return "V";
+    }
+
 }

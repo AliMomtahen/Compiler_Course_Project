@@ -104,7 +104,8 @@ public class TypeAnalyzer extends Visitor<Void> {
     public Void visit(VarDeclaration varDeclaration) {
         Expression exp = varDeclaration.getRValue();
         if (exp != null) {
-            exp.accept(expressionTypeChecker);
+            var t = exp.accept(expressionTypeChecker);
+            exp.setType(t);
         }
         return null;
     }
@@ -112,6 +113,7 @@ public class TypeAnalyzer extends Visitor<Void> {
     @Override
     public Void visit(IfElseStmt ifElseStmt) {
         Type conditionType = ifElseStmt.getCondition().accept(expressionTypeChecker);
+
         if (!(conditionType instanceof BoolType)) {
             typeErrors.add(new ConditionTypeNotBool(ifElseStmt.getLine()));
         }
@@ -123,6 +125,7 @@ public class TypeAnalyzer extends Visitor<Void> {
     @Override
     public Void visit(WhileStmt whileStmt) {
         Type conditionType = whileStmt.getCondition().accept(expressionTypeChecker);
+        whileStmt.getCondition().setType(conditionType);
         if (!(conditionType instanceof BoolType)) {
             typeErrors.add(new ConditionTypeNotBool(whileStmt.getLine()));
         }
