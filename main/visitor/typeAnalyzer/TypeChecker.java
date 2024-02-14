@@ -115,7 +115,7 @@ public class TypeChecker extends Visitor<Type> {
         try {
             SymbolTableItem item = SymbolTable.top.get(VariableItem.START_KEY + idName);
             identifier.setType(((VariableItem) item).getType());
-            System.out.println(identifier.getName() + "  type: " + identifier.getType());
+            //System.out.println(identifier.getName() + "  type: " + identifier.getType());
             return ((VariableItem) item).getType();
         } catch (ItemNotFoundException e) {
             // error variable not declared
@@ -129,7 +129,7 @@ public class TypeChecker extends Visitor<Type> {
         try {
             SymbolTableItem item = SymbolTable.root.get(FunctionItem.START_KEY + funcName);
             funcCall.setType(((FunctionItem) item).getFunctionDeclaration().getReturnType());
-            System.out.println("gode   " );
+
             return ((FunctionItem) item).getFunctionDeclaration().getReturnType();
         } catch (ItemNotFoundException e) {
             // error function not declared

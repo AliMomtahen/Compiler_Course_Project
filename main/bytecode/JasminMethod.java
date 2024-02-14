@@ -77,7 +77,7 @@ public class JasminMethod extends Bytecode{
         res.append(".limit locals ").append(localSize).append('\n');
         for (var bytecode : body)
             res.append(bytecode);
-        res.append(".end method\n\n");
+        res.append("\n.end method\n\n");
         return res.toString();
     }
 }

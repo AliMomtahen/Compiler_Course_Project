@@ -127,10 +127,12 @@ public class CodeGenerator extends Visitor<String> {
     }
 
     private void initial(){
+        addCommand("");
         addCommand(".method public <init>()V");
         addCommand("aload_0");
         addCommand("invokespecial java/lang/Object/<init>()V");
-        addCommand(".end method");
+        addCommand(".end method\n\n");
+        addCommand("");
     }
 
     @Override
